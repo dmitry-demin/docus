@@ -1,0 +1,1 @@
+﻿Get-ADComputer -Filter * | select Name > 'C:\Users\dd_odmin\Desktop\computers_ad.txt'

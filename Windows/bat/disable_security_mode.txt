@@ -1,0 +1,6 @@
+attrib -h -s "%WinDir%\System32\GroupPolicyUsers"
+move /y "%WinDir%\System32\GroupPolicyUsers GroupPolicyUsers_BAK"
+attrib -h -s "%WinDir%\System32\GroupPolicy"
+move /y "%WinDir%\System32\GroupPolicy GroupPolicy_BAK"
+gpupdate /force
+exit

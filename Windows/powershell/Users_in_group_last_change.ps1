@@ -1,0 +1,1 @@
+﻿get-adgroupmember -identity "Domain Admins" | Get-ADUser -Properties PasswordLastSet | Select-Object Name, PasswordLastSet

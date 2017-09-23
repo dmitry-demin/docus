@@ -1,0 +1,1 @@
+﻿Get-MessageTrackingLog -Server ex1 -Start "10/24/2016 10:42:00" -End "10/24/2016 11:00:00" -Recipients Julietta.Pseunova@gemotest.ru
