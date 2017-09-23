@@ -6,16 +6,13 @@ ListenAddress 0.0.0.0
 HostKey /etc/ssh/ssh_host_rsa_key
 SyslogFacility AUTHPRIV
 LogLevel Info
-# Разрешаем хождения root только по ключу
 PermitRootLogin without-password
 RSAAuthentication yes
 PubkeyAuthentication yes
 AuthorizedKeysFile      .ssh/authorized_keys
-# отключаем авторизацию по паролю
 PasswordAuthentication no
 PermitEmptyPasswords no
 ChallengeResponseAuthentication no
-# Отключает авторизацию пользователя по паролю.
 UsePAM no
 X11Forwarding yes
 TCPKeepAlive yes
