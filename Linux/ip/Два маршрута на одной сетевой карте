@@ -1,0 +1,7 @@
+ip addr add 212.34.50.202/28 dev br0
+ip addr add 185.41.40.58/32 dev br0
+ip route add default via 212.34.50.202 dev br0 table 101
+ip route add default via 185.41.40.58 dev br1 table 201
+ip rule add from 212.34.50.202 table 101
+ip rule add from 185.41.40.58 table 201
+

@@ -1,0 +1,329 @@
+yum -y install bind bind-utils yum-utils
+yum -y install bash-completion-extras.noarch
+
+yum -y install rng-tools
+Настройка проста 
+systemctl enable rngd
+nano -w /etc/sysconfig/rngd 
+EXTRAOPTIONS="-r /dev/urandom"
+Настройка окончена
+
+rndc-confgen -a -r /dev/urandom
+cat /etc/rndc.key 
+key "rndc-key" {
+        algorithm hmac-md5;
+        secret "bEY2Pb1/ds3cGjybmph92Q==";
+};
+
+systemctl enable named
+
+mkdir -p /var/log/named
+chown named: /var/log/named
+mkdir -p /var/named/keys/avsw.rf/
+chmod 0750 /var/named/keys /var/named/keys/avsw.rf/
+cd /var/named/keys/avsw.rf/
+dnssec-keygen -a RSASHA256 -b 1024 xn----7sbg3cohn.xn--p1ai
+dnssec-keygen -a RSASHA256 -b 2048 -f KSK xn----7sbg3cohn.xn--p1ai
+chmod -R 0640 /var/named/keys/avsw.rf
+chown -R named:named /var/named/keys
+Ох сейчас глаза сломаю:
+ls -lA /var/named/keys/avsw.rf/
+итого 16
+-rw-r----- 1 named named  631 июн 16 13:59 Kxn----7sbg3cohn.xn--p1ai.+008+32875.key
+-rw-r----- 1 named named 1776 июн 16 13:59 Kxn----7sbg3cohn.xn--p1ai.+008+32875.private
+-rw-r----- 1 named named  457 июн 16 13:58 Kxn----7sbg3cohn.xn--p1ai.+008+45654.key
+-rw-r----- 1 named named 1012 июн 16 13:58 Kxn----7sbg3cohn.xn--p1ai.+008+45654.private
+
+
+cp /etc/named.conf /etc/named.conf.bak
+> /etc/named.conf
+nano -w /etc/named.conf
+
+options { listen-on port 53 { localhost; 192.168.10.73; }; 
+        listen-on-v6 port 53 { ::1; }; 
+        directory "/var/named"; 
+        dump-file "/var/named/data/cache_dump.db"; 
+        statistics-file "/var/named/data/named_stats.txt"; 
+        memstatistics-file "/var/named/data/named_mem_stats.txt"; 
+        allow-query { any; }; 
+        allow-transfer { 31.41.44.227; 31.41.44.228; }; 
+        recursion no; 
+        version "Made in USSR"; 
+        additional-from-auth no; 
+        additional-from-cache no; 
+        dnssec-enable yes; 
+        dnssec-validation yes; 
+        dnssec-lookaside auto; 
+
+        /* Path to ISC DLV key */ 
+        bindkeys-file "/etc/named.iscdlv.key"; 
+        managed-keys-directory "/var/named/dynamic"; }; 
+
+key "rndc-key" {
+        algorithm hmac-md5;
+        secret "bEY2Pb1/ds3cGjybmph92Q==";
+};
+
+controls {
+        inet 127.0.0.1 port 953
+        allow { 127.0.0.1; } keys { "rndc-key"; };
+};
+
+
+
+logging
+{
+        category lame-servers   { null; };
+        category resolver       { null; };
+        category queries        { log_requests; };
+        category default        { named_file; };
+        category xfer-in        { xfer-in; };
+        category xfer-out       { xfer-out; };
+
+channel log_requests
+        {
+        file "/var/log/named/queries.log" versions 10 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel named_file
+        {
+        file "/var/log/named/named.log" versions 10 size 20m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel xfer-in
+       {
+        file "/var/log/named/xfer-in.log" versions 10 size 50m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel xfer-out
+       {
+        file "/var/log/named/xfer-out.log" versions 10 size 50m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+};
+
+
+zone "." IN { 
+        type hint; 
+        file "named.ca"; 
+        }; 
+
+include "/etc/named.rfc1912.zones"; 
+include "/etc/named.root.key"; 
+
+zone "xn----7sbg3cohn.xn--p1ai" IN { 
+        type master; 
+        file "zone/avsoft.rf.zone"; 
+        allow-update { none; }; 
+        key-directory "keys/avsw.rf"; 
+        inline-signing yes; 
+        auto-dnssec maintain;
+        notify yes;
+        };
+### Настройка named окончена
+
+
+### Конфигурация master зоны, русскоязычного домена xn----7sbg3cohn.xn--p1ai (ав-софт.рф)
+###
+nano -w /var/named/zone/avsoft.rf.zones
+
+$TTL    3600
+xn----7sbg3cohn.xn--p1ai.   IN    SOA   xn----7sbg3cohn.xn--p1ai. admin.avsw.ru. (
+                        2017061601 ; serial
+                        28800
+                        7200
+                        604800
+                        86400 )
+                IN      NS      ns1.xn----7sbg3cohn.xn--p1ai.
+                IN      NS      ns2.xn----7sbg3cohn.xn--p1ai.
+
+
+@               IN      A       31.41.44.227
+@               IN      A       31.41.44.228
+ns1             IN      A       31.41.44.227
+ns2             IN      A       31.41.44.228
+*               IN      A       31.41.44.227
+*               IN      A       31.41.44.228
+
+##Конфигурация зоны окончено
+
+named-checkconf /etc/named.conf
+named-checkzone xn----7sbg3cohn.xn--p1ai /var/named/zone/avsoft.rf.zone
+systemctl start rngd
+systemctl start named
+Полжно появиться:
+
+ls -lA  /var/named/zone/
+итого 24
+-rw-r--r-- 1 named named  519 июн 16 15:52 avsoft.rf.zone
+-rw-r--r-- 1 named named  512 июн 16 15:54 avsoft.rf.zone.jbk
+-rw-r--r-- 1 named named 4014 июн 16 16:07 avsoft.rf.zone.signed
+-rw-r--r-- 1 named named 8659 июн 16 15:54 avsoft.rf.zone.signed.jnl
+
+Проверяем:
+
+dig @127.0.0.1 xn----7sbg3cohn.xn--p1ai +dnssec
+dig @127.0.0.1 xn----7sbg3cohn.xn--p1ai. DNSKEY +multiline +noall +answer
+
+Отпрака регисратору dnssec (NIC-RU)
+DNSSEC подписание своей доменной зоны на своём или любом стороннем ДНС сервере не означает, что DNSSEC уже включен и полноценно работает. 
+Последним шагом на пути к окончательной активации DNSSEC будет отправка DS/KSK (Delegation of Signing, Key Signing key) записи на ДНС сервера корневых зон, 
+которая выполняется непосредственно через регистратора доменного имени ибо только регистратор домена имеет право доступа к ДНС серверам корневых доменных зон. 
+В большинстве случаев нам нужна именно KSK запись, которую мы пожем получить либо непосредственно из ключа соданного ранее коммандой "dnssec-keygen" с флагом "-f KSK":
+
+Получить результат можно следующим способом:
+dig @127.0.0.1 xn----7sbg3cohn.xn--p1ai. DNSKEY +multiline +noall +answer
+
+; <<>> DiG 9.9.4-RedHat-9.9.4-38.el7_3.3 <<>> @127.0.0.1 xn----7sbg3cohn.xn--p1ai. DNSKEY +multiline +noall +answer
+; (1 server found)
+;; global options: +cmd
+ав-софт.рф.     3600 IN DNSKEY 257 3 8 (
+                                AwEAAdSSbDZYqFWH0B/4na9Xpw/3tEC16g2iMfhI6Jg6
+                                uy+39QcAZmB/En+sI7Fc5KYXeZrXvtZDiMlOPQY62Dpt
+                                R8rfvi6Qfm5HK0QekMTkRNwMJQCM06L0q3TGZmhrgCm1
+                                vXnCIs12Ri1vuOWroaH0E6sdbchka3SzMNJlobjNFGQT
+                                XQ9m3rRODxb9ocyBnc+/Gm6AFJ/4udBOQnepmjoi9vRU
+                                dVQt+HYSkY/h4J3bDaYLZLYQJkvtAQOp/1S2sEbQWqYT
+                                exgA6sgvLQeslt2hZF5qg7lJviD4+bNU8p2/HXMSAhrr
+                                IrYeDiZHwyBSoKSY/HeUc4Izqj8wZCdm9SM4D9c=
+                                ) ; KSK; alg = RSASHA256; key id = 32875
+ав-софт.рф.     3600 IN DNSKEY 256 3 8 (
+                                AwEAAauAeexJV/DwPn9yLlJly3adLz+vDMmY+ACnL54C
+                                Rm0azPSUbuZyPv0mpuy5t//PLtfxfjx9o4f9M93O9Ip2
+                                kmur2Y2Zujlr0epIuX1My83FWR2tRq41nE/t+Jlf25UQ
+                                8VoSGUflX8C0pK48yE1woNt/HyCmLVSrzszBim4glgFj
+                                ) ; ZSK; alg = RSASHA256; key id = 45654
+                                
+                                
+                                
+dnssec-dsfromkey -a SHA-1 Kxn----7sbg3cohn.xn--p1ai.+008+32875.key
+dnssec-dsfromkey -a SHA-256 Kxn----7sbg3cohn.xn--p1ai.+008+32875.key
+dnssec-dsfromkey -a SHA-384 Kxn----7sbg3cohn.xn--p1ai.+008+32875.key
+
+Все это дело вставляем на сайте NIC.RU
+
+
+Испраление ошибок:
+chown -R named:named /var/named 
+named-checkconf /etc/named.conf
+named-checkzone xn----7sbg3cohn.xn--p1ai /var/named/zone/avsoft.rf.zone
+rndc reload
+tail -f /var/log/named/named.log
+tail -f /var/log/named/xfer-out.log 
+
+############
+Slave
+nano -w /etc/named.conf
+
+options { listen-on port 53 { localhost; 31.41.44.227; };                                                                                                                                     
+        listen-on-v6 port 53 { ::1; };                                                                                                                                                        
+        directory "/var/named";                                                                                                                                                               
+        dump-file "/var/named/data/cache_dump.db";                                                                                                                                            
+        statistics-file "/var/named/data/named_stats.txt";                                                                                                                                    
+        memstatistics-file "/var/named/data/named_mem_stats.txt"; 
+        allow-query { any; }; 
+        allow-transfer { 31.41.44.227; 31.41.44.228; }; 
+        recursion no; 
+        version "Made in USSR";
+        hostname "none";
+        server-id "none";
+
+        additional-from-auth no; 
+        additional-from-cache no; 
+        dnssec-enable yes; 
+        dnssec-validation yes; 
+        dnssec-lookaside auto; 
+
+        /* Path to ISC DLV key */ 
+        bindkeys-file "/etc/named.iscdlv.key"; 
+        managed-keys-directory "/var/named/dynamic"; }; 
+
+controls {
+        inet 127.0.0.1 port 953
+        allow { 127.0.0.1; } keys { "rndc-key"; };
+};
+
+key "rndc-key" {
+        algorithm hmac-md5;
+        secret "FTtLhfNmHXKtPhzRMOa6vQ==";
+};
+
+
+logging
+{
+        category lame-servers   { null; };
+        category resolver       { null; };
+        category queries        { log_requests; };
+        category default        { named_file; };
+        category xfer-in        { xfer-in; };
+        category xfer-out       { xfer-out; };
+
+channel log_requests
+        {
+        file "/var/log/named/queries.log" versions 10 size 100m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel named_file
+        {
+        file "/var/log/named/named.log" versions 10 size 20m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel xfer-in
+       {
+        file "/var/log/named/xfer-in.log" versions 10 size 50m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+channel xfer-out
+       {
+        file "/var/log/named/xfer-out.log" versions 10 size 50m;
+                print-time yes;
+                print-category yes;
+                print-severity yes;
+        };
+};
+
+
+zone "." IN { 
+        type hint; 
+        file "named.ca"; 
+        }; 
+
+include "/etc/named.rfc1912.zones"; 
+include "/etc/named.root.key"; 
+
+zone "xn----7sbg3cohn.xn--p1ai" IN { 
+        type slave; 
+        masters { 185.41.40.58; 212.34.50.202; };
+        allow-notify { 185.41.40.58; 212.34.50.202; };
+        file "zone/avsoft.rf.zone.signed"; 
+#       query-source address * port 44334;
+#       transfer-source * port 44334;
+#       notify-source * port 44334 ;
+#        allow-update { none; }; 
+#        inline-signing yes; 
+#        auto-dnssec maintain;
+#        notify yes;
+        };
+
+mkdir -p /var/named/zone/
+chown -R named: /var/named/zone
+mkdir -p /var/log/named
+chown -R named: /var/log/named
+
+
+
+

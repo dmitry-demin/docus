@@ -1,0 +1,70 @@
+ 1  yum -y install nano yum-utils mlocate net-tools 
+ 2  rpm -Uvh http://mirrors.nayatel.com/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+ 3  yum -y install epel-release
+ 4  yum -y install https://www.process-one.net/downloads/ejabberd/17.04/ejabberd-17.04-0.x86_64.rpm
+ 5  egrep jab /etc/passwd
+ 6  systemctl status ejabberd
+ 7  systemctl status ejabber
+ 8  yum search bash extra
+ 9  yum -y install bash-completion-extras.noarch
+ 10  yum update
+ 86  yum -y install git
+ 87  git clone https://github.com/digicoop/kaiwa.git /var/www/kaiwa
+ 88  cd /var/www/kaiwa/
+ 90  yum -y install npm
+ 91  npm install
+ 92  node-gyp rebuild
+ 102  yum install -y gcc-c++ make
+ 103  yum install -y nodejs -y  
+ 152  npm install node-gyp
+ 153  npm install ref
+ 154  npm install
+ 155  cp dev_config.example.json dev_config.json
+ 157  chown -R kaiwa: /var/www/kaiwa
+ 158  nano -w /var/www/kaiwa/dev_config.json
+
+[root@ejabber ~]# cat /var/www/kaiwa/dev_config.json 
+{
+    "isDev": true,
+    "http": {
+        "host": "192.168.10.79",
+        "port": 80
+    },
+    "session": {
+        "secret": "wSPwBucqnCY4JHEENMY6NM4UsfycNz"
+    },
+    "server": {
+        "name": "Server AVSOFT",
+        "domain": "ejabberd.avsw.ru",
+        "wss": "ws://192.168.10.79:5280/ws",
+ "muc": "",
+        "startup": "groupchat/example%40chat.example.com",
+        "admin": "admin"
+    }
+}
+
+    Настройки берутся с конфигурационного файла ищи порт 5280
+    nano -w /opt/ejabberd-17.04/conf/ejabberd.yml
+    port: 5280
+    module: ejabberd_http
+    request_handlers:
+      "/ws": ejabberd_http_ws
+      "/api": mod_http_api
+    ##  "/pub/archive": mod_http_fileserver
+    web_admin: true
+    http_bind: true
+    ## register: true
+    captcha: false
+    starttls: false
+
+ Так как пишу по памяти, включи дебаг, могут всплыть косяки
+ Если все ровно, лепим сервер.
+ 
+ 248  npm install forever -g
+ 266  /usr/bin/forever start --spinSleepTime 100 --minUptime 3000 --workingDir /var/www/kaiwa /var/www/kaiwa/server.js
+ 
+ systemd сам напишешь, сложно ни чего нет.
+ 
+ 
+ 
+

@@ -1,0 +1,25 @@
+Установка LXC на Centos 7
+
+Сама установка ни чем не отличается от обычной установки
+
+yum -y install epel-release
+yum -y install lxc lxc-templates lxc-extra libcap-devel libcgroup busybox wget bridge-utils 
+
+Прочекались:
+lxc-checkconfig
+
+После того как все это дело развернули и мы захотели поставить Centos 7, поставили и начили заливать пакетики, yum виснет.
+Поэтому, решение нашлось, там тарарам:
+
+echo "lxc.kmsg = 0" >> /usr/share/lxc/config/centos.common.conf
+
+
+Далее ставим, все что нужно...
+
+
+В fedora установка ни чем не отличается от Centos
+
+sudo dnf install lxc lxc-templates lxc-extra debootstrap libvirt debootstrap perl
+systemctl enable libvirtd
+
+echo "lxc.kmsg = 0" >> /usr/share/lxc/config/fedora.common.conf

@@ -1,0 +1,35 @@
+firewall-cmd --zone=internal --add-port=80/tcp --permanent;
+firewall-cmd --zone=internal --add-port=53/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=53/udp --permanent; 
+firewall-cmd --zone=internal --add-port=88/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=88/udp --permanent;
+firewall-cmd --zone=internal --add-port=135/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=137-138/udp --permanent; 
+firewall-cmd --zone=internal --add-port=139/tcp --permanent;
+firewall-cmd --zone=internal --add-port=389/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=389/udp --permanent; 
+firewall-cmd --zone=internal --add-port=445/tcp --permanent;
+firewall-cmd --zone=internal --add-port=464/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=464/udp --permanent; 
+firewall-cmd --zone=internal --add-port=636/tcp --permanent;
+firewall-cmd --zone=internal --add-port=1024-5000/tcp --permanent; 
+firewall-cmd --zone=internal --add-port=3268-3269/tcp --permanent;
+
+firewall-cmd --zone=external --remove-port=80/tcp --permanent;
+firewall-cmd --zone=external --remove-port=53/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=53/udp --permanent; 
+firewall-cmd --zone=external --remove-port=88/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=88/udp --permanent;
+firewall-cmd --zone=external --remove-port=135/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=137-138/udp --permanent; 
+firewall-cmd --zone=external --remove-port=139/tcp --permanent;
+firewall-cmd --zone=external --remove-port=389/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=389/udp --permanent; 
+firewall-cmd --zone=external --remove-port=445/tcp --permanent;
+firewall-cmd --zone=external --remove-port=464/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=464/udp --permanent; 
+firewall-cmd --zone=external --remove-port=636/tcp --permanent;
+firewall-cmd --zone=external --remove-port=1024-5000/tcp --permanent; 
+firewall-cmd --zone=external --remove-port=3268-3269/tcp --permanent;
+
+firewall-cmd --reload

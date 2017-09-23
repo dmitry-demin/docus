@@ -1,0 +1,74 @@
+ 
+set firewall name 0-wan
+set firewall name 0-wan default-action 'drop'
+set firewall name 0-wan rule 10 action 'accept'
+set firewall name 0-wan rule 10 state established 'enable'
+set firewall name 0-wan rule 10 state related 'enable'
+set firewall name 0-wan rule 21 action 'accept'
+set firewall name 0-wan rule 21 destination port '22'
+set firewall name 0-wan rule 21 protocol 'tcp'
+set firewall name 0-wan rule 21 state new 'enable'
+set firewall name 0-wan rule 21 action 'accept'
+set firewall name 0-wan rule 21 destination port '21'
+set firewall name 0-wan rule 21 protocol 'tcp'
+set firewall name 0-wan rule 21 state new 'enable'
+set firewall name 0-wan rule 80 action 'accept'
+set firewall name 0-wan rule 80 destination port '80'
+set firewall name 0-wan rule 80 protocol 'tcp'
+set firewall name 0-wan rule 80 state new 'enable'
+set firewall name 0-wan rule 443 action 'accept'
+set firewall name 0-wan rule 443 destination port '443'
+set firewall name 0-wan rule 443 protocol 'tcp'
+set firewall name 0-wan rule 443 state new 'enable'
+set firewall name 0-wan rule 211 action accept
+set firewall name 0-wan rule 211 protocol tcp
+set firewall name 0-wan rule 211 state established enable
+set firewall name 0-wan rule 211 state related enable
+set firewall name 0-wan rule 211 source port 47350-47650
+set interfaces ethernet eth1 firewall in name '0-wan'
+
+
+
+
+
+set firewall name 122-wan
+set firewall name 122-wan default-action 'drop'
+set firewall name 122-wan rule 10 action 'accept'
+set firewall name 122-wan rule 10 state established 'enable'
+set firewall name 122-wan rule 10 state related 'enable'
+set firewall name 122-wan rule 20 action 'accept'
+set firewall name 122-wan rule 20 icmp type-name 'echo-request'
+set firewall name 122-wan rule 20 protocol 'icmp'
+set firewall name 122-wan rule 20 state new 'enable'
+set firewall name 122-wan rule 30 action 'drop'
+set firewall name 122-wan rule 30 destination port '22'
+set firewall name 122-wan rule 30 protocol 'tcp'
+set firewall name 122-wan rule 30 recent count '4'
+set firewall name 122-wan rule 30 recent time '60'
+set firewall name 122-wan rule 30 state new 'enable'
+set firewall name 122-wan rule 31 action 'accept'
+set firewall name 122-wan rule 31 destination port '22'
+set firewall name 122-wan rule 31 protocol 'tcp'
+set firewall name 122-wan rule 31 state new 'enable'
+set firewall name 122-wan rule 21 action 'accept'
+set firewall name 122-wan rule 21 destination port '21'
+set firewall name 122-wan rule 21 protocol 'tcp'
+set firewall name 122-wan rule 21 state new 'enable'
+set firewall name 122-wan rule 21 state established 'enable'
+set firewall name 122-wan rule 21 state related 'enable'
+set firewall name 122-wan rule 80 action 'accept'
+set firewall name 122-wan rule 80 destination port '80'
+set firewall name 122-wan rule 80 protocol 'tcp'
+set firewall name 122-wan rule 80 state new 'enable'
+set firewall name 122-wan rule 443 action 'accept'
+set firewall name 122-wan rule 443 destination port '443'
+set firewall name 122-wan rule 443 protocol 'tcp'
+set firewall name 122-wan rule 443 state new 'enable'
+set firewall name 122-wan rule 211 action accept
+set firewall name 122-wan rule 211 protocol tcp
+set firewall name 122-wan rule 211 state established enable
+set firewall name 122-wan rule 211 state related enable
+set firewall name 122-wan rule 211 source port 47350-47650
+set interfaces ethernet eth2 firewall in name '122-wan'
+
+

@@ -1,0 +1,90 @@
+Активные действия
+
+Сайт по OpenSSL напоминался
+https://www.sslshopper.com/ssl-converter.html 
+
+Для Гост читать дальше.
+
+Единственный пакет, который нужно поставить - openssl, но он уже и так должен быть в системе. Не мешает также обновить его, если он устарел, т.к. OpenSSL - один из самых забагованных и дырявых пакетов в *nix-системах вообще.
+
+apt-get update && apt-get dist-upgrade -y
+apt-get install openssl
+
+Переходим в каталог /etc/ssl/ и открываем на запись файл openssl.conf. Мне нравится использовать vim, новичкам же советую открывать файлы с помощью nano.
+
+cd /etc/ssl/
+vim openssl.conf
+
+В самое начало файла, перед первой секцией, пишем следующее:
+
+openssl_conf = openssl_def
+
+Получится так:
+
+#
+# OpenSSL example configuration file.
+# This is mostly being used for generation of certificate requests.
+#
+
+# This definition stops the following lines choking if HOME isn't
+# defined.
+
+HOME            = .
+RANDFILE        = $ENV::HOME/.rnd
+
+# Extra OBJECT IDENTIFIER info:
+#oid_file       = $ENV::HOME/.oid
+oid_section     = new_oids
+
+# To use this configuration file with the "-extfile" option of the
+# "openssl x509" utility, name here the section containing the
+# X.509v3 extensions to use:
+# extensions        =
+# (Alternatively, use a configuration file that has only
+# X.509v3 extensions in its main [= default] section.)
+
+openssl_conf = openssl_def
+
+[ new_oids ]
+
+# We can add new OIDs in here for use by 'ca', 'req' and 'ts'.
+# Add a simple OID like this:
+# testoid1=1.2.3.4
+
+Теперь в конец файла дописываем:
+
+[openssl_def]
+engines = engine_section
+
+[engine_section]
+gost = gost_section
+
+[gost_section]
+soft_load=1
+default_algorithms = ALL
+CRYPT_PARAMS = id-Gost28147-89-CryptoPro-A-ParamSet
+
+После сохранения проверяем доступность алгоритмов ГОСТ в системе:
+
+Раз:
+
+openssl list-message-digest-algorithms | grep gost
+gost-mac
+md_gost94
+gost-mac
+md_gost94
+
+Два:
+
+openssl list-cipher-algorithms | grep gost
+gost89
+gost89
+gost89-cnt
+
+Написано на основе багрепорта, но, в отличие от инструкции на сайте одного известного отечественного производителя средств шифрования, всё работает.
+
+
+
+
+Для конвертации можно воспользоваться (помни данный продукт не поддерживает Гост сертификацию)
+http://portablesigner.sourceforge.net/

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#host=$( hostname -s )
+
+#sudo sed -i "s/monitoring\@tech\.netville\.ru/${host}@.mail.netville.ru/" /etc/aliases
+
+#sudo sed -i "/ntpdate/d" /etc/cron.d/nv-services
+
+sudo -u root bash -c "echo -e 'MAILTO=cron-admin@mail.netville.ru \n*/5 * * * * root /usr/sbin/ntpdate -u -b -s ntp.netville.ru' > /etc/cron.d/ntp-client"
+
+sudo -u root bash -c "/bin/chown root:root /etc/cron.d/ntp-client"
+
+sudo -u root bash -c "/etc/init.d/crond restart"
+#sudo /usr/sbin/ntpdate -u -b -s ntp.netville.ru
+#date
+
+sudo grep ntp /etc/cron.d/ntp-client

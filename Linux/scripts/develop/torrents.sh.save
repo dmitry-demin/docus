@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#
+#
+#
+#
+#
+#
+
+
+# Use key`s for creaters torrents files
+
+while getopts ":c:n:" Option
+do
+    case $Option
+    in
+        c ) c="$OPTARG $var_c";;
+        n ) n="$OPTARG $var_d";;
+        * ) echo "Ввести переменную";;
+    esac
+done
+
+# small test
+if [ -z "$var_s" ]
+then
+  echo 'Please enter key or name torrwnts files.'
+  exit
+fi
+
+# Check if directory no exit, create directory.
+
+mkdir /home/demin/torrents/$var_c
+
+
+
+
+
+
+

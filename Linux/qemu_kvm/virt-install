@@ -1,0 +1,9 @@
+Установка Windows 10 на LVM
+
+virt-install --connect qemu:///system \ 
+-n w10 -r 6048 --arch=x86_64 \
+--vcpus=2 --os-variant=win10 \
+-c /var/lib/libvirt/images/windows_10.iso \
+--disk path=/dev/lvm-storage/w10 \
+--network bridge:virbr0 --graphics vnc,listen=0.0.0.0,port=5903 -v --noautoconsole --boot cdrom,hd
+ 

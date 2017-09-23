@@ -1,0 +1,33 @@
+#!/bin/bash
+
+
+OLDIFS="IFS"
+IFS=" "
+
+dirdist="/usr/share/webapps/cacti/0.8.7i/htdocs/"
+dirinst="/var/www/cacti.test.dm/htdocs/cacti/"
+
+#check_ls="ls -l /usr/share/webapps/cacti/0.8.7i/htdocs | sort -u && ls -l /var/www/cacti.test.dm/htdocs/cacti | sort -u"
+
+#for i in $check_ls
+#    do
+
+sudo find $dirdist -type f -exec bash -c 'echo "$(md5sum $1 | cut -f1 -d " " | sort -nr) $(stat -c "%a %g %u" $1) $1"' _ {} \; > /tmp/dist.txt
+sudo find $dirinst -type f -exec bash -c 'echo "$(md5sum $1 | cut -f1 -d " " | sort -nr) $(stat -c "%a %g %u" $1) $1"' _ {} \; > /tmp/inst.txt
+
+sudo sed -i '/s/\/usr\/share\/webapps\/cacti\/0.8.7i\/htdocs//g' /tmp/dist.txt
+sudo sed -i '/s/\/var\/www\/cacti.test.dm\/htdocs\/cacti//g' /tmp/inst.txt
+
+
+
+
+#if [[ $dist == $inst ]];
+# then
+# echo "true"
+#else
+# echo "false"
+# fi
+
+
+#done
+

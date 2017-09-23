@@ -1,0 +1,142 @@
+virsh snapshot-create-as --domain {VM-NAME} --name "{SNAPSHOT-NAME}"
+virsh list
+virsh snapshot-list --domain openbsd
+
+
+Тестирование:
+[root@bc-kvm ~]# time virsh snapshot-create-as --domain w10-demin-test --name "w10-demin-test-snap1" --description "Default Configuration Snapshot"
+ошибка: конфигурация не поддерживается: внутренний снимок hda для пространства данных типа raw не поддерживается
+real    0m0.023s
+user    0m0.013s
+sys     0m0.007s
+
+Причина этому: 
+[root@bc-kvm ~]# virsh dumpxml w10-demin-test | grep -i qemu
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+      <driver name='qemu' type='raw'/>
+      <driver name='qemu' type='raw'/>
+      
+Данная технология больше подходит для qcow2, на примере win7-powershell
+[root@bc-kvm ~]# virsh dumpxml win7-powershell | grep -i qemu
+    <emulator>/usr/libexec/qemu-kvm</emulator>
+      <driver name='qemu' type='qcow2'/>
+      <driver name='qemu' type='raw'/>
+
+
+Пробуем создать снап средствами LVM
+lvcreate -L 1G -s -n w10-test-snap /dev/vmstor/w10-test
+Собственно, что создали:
+lvdisplay /dev/vmstor/w10-test-snap
+Далее dumpим vm и редактируем значения диска, названия vm, убиваем uid vm
+virsh dumpxml w10 | sed -e 's/\/dev\/vmstor\/w10-test/\/dev\/vmstor\/w10-test-snap/g' -e 's/name>w10<\/name/name>w10-snap<\/name/g' -e '/uuid/d' > /etc/libvirt/qemu/w10-snap.xml
+virsh define /etc/libvirt/qemu/w10-snap.xml
+virsh start w10-snap
+
+Проверяем, что работает, далее удаляем
+virsh undefine w10-snap 
+lvremove -y /dev/vmstor/w10-test-snap
+
+Скриптом на bash получается:
+[root@bc-kvm ~]# time bash create_vm.sh
+  Using default stripesize 64,00 KiB.
+  Logical volume "w10-test-snap" created.
+Домен w10-snap определён на основе /etc/libvirt/qemu/w10-snap.xml
+Домен w10-snap был успешно запущен
+real    0m0.684s
+user    0m0.047s
+sys     0m0.049s
+
+
+Пробуем создать snap средствами virsh для win7-powershell
+
+Созадние snapshot
+virsh snapshot-create-as --domain win7-powershell --name "win7-powershell-snap1" --description "Default Configuration Snapshot"
+
+Просмотр и информация о snapshot
+virsh snapshot-list --domain win7-powershell
+virsh snapshot-info --domain win7-powershell --snapshotname win7-powershell-snap1 
+
+Восстановление snapshot
+virsh destroy --domain win7-powershell
+virsh snapshot-revert --domain win7-powershell --snapshotname win7-powershell-snap1 --running
+
+Так как восставновление происходит одной командой, то собственно:
+[root@bc-kvm ~]# time virsh snapshot-revert --domain win7-powershell --snapshotname win7-powershell-snap1 --running
+real    0m0.778s
+user    0m0.012s
+sys     0m0.007s
+
+ZFS 
+На стадии тестирования, проверка произодится только средствами самого zfs, для работы с virsh требуется пересобрать пакет libvirtd с поддержкой zfs
+
+Пример ошибки без сборки zfs:
+pool-define-as --name zfs_pool --source-name vm_zpool --type zfs
+ошибка: Не удалось определить пул zfs_pool
+ошибка: internal error: missing backend for pool type 11 (zfs)
+
+Причина ошибки:
+[root@bc-kvm ~]# virsh -V
+Утилита командной строки virsh для libvirt 2.0.0
+Сайт: http://libvirt.org/
+
+Собран с поддержкой: 
+Гипервизоры: QEMU/KVM LXC ESX Test
+Сеть: Remote Network Bridging Interface netcf Nwfilter VirtualPort
+Пространство данных: Dir Disk Filesystem SCSI Multipath iSCSI LVM RBD Gluster
+Прочее: Daemon Nodedev SELinux Secrets Debug DTrace Readline Modular
+
+
+Приступаем к созданию:
+lvcreate -L 100G -n zpool vmstor
+zpool create vm_zpool /dev/vmstor/zpool
+zfs create -V 30G vm_zpool/disk1
+zfs list
+
+Далее, делаем виртуальную машину на zfs устройстве.
+virt-install --connect qemu:///system -n w10-zfs-test -r 6048 --arch=x86_64 \
+--vcpus=2 --os-variant=win10 \
+-c /var/lib/libvirt/images/ru_windows_10_multiple_editions_version_1703_updated_march_2017_x64_dvd_10195475.iso \
+--disk path=/dev/vm_zpool/disk1 --network bridge:virbr0 \
+--graphics vnc,listen=0.0.0.0,port=5903 -v \
+--noautoconsole --boot cdrom,hd
+
+После установки:
+Создание snapshot
+[root@bc-kvm ~]# time zfs snapshot vm_zpool/disk1@snap2
+real    0m0.382s
+user    0m0.001s
+sys     0m0.003s
+
+Откат snapshot
+[root@bc-kvm ~]# time zfs rollback vm_zpool/disk1@snap1
+real    0m0.270s
+user    0m0.001s
+sys     0m0.011s
+
+Клон:
+[root@bc-kvm ~]# time zfs clone vm_zpool/disk1@snap1 vm_zpool/disk2
+real    0m0.370s
+user    0m0.001s
+sys     0m0.005s
+
+Делаем выводы.
+
+Удаление zfs 
+
+zfs list -t snapshot
+zfs destroy vm_zpool/disk1@snap1
+zfs destroy vm_zpool/disk1
+zpool destroy vm_zpool
+zpool list
+
+В virsh может остаться запись о pool
+virsh pool-list --all
+virsh pool-destroy vm_zpool
+virsh pool-undefine vm_zpool
+
+
+
+
+
+
+

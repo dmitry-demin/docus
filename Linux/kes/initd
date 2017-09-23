@@ -1,0 +1,131 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          kes4lwks-supervisor
+# Required-Start:    $local_fs
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Kaspersky Lab Framework for Kaspersky Lab Linux-based anti-virus applications
+# Description:       Provides a framework required to run Kaspersky Lab Linux-based
+#       applications of version 8.0 and above.
+#       Note: Starting the service starts all the Kaspersky Lab Linux-based anti-virus
+#       applications of version 8.0 and above installed on this computer.
+#       Stopping the service stops all the Kaspersky Lab Linux-based anti-virus
+#       applications of version 8.0 and above running on this computer.
+### END INIT INFO
+
+KL_APP=kes4lwks
+KL_SERVICE_TITLE="Kaspersky Lab Framework Supervisor"
+KL_SERVICE_NAME=kes4lwks-supervisor
+KL_SERVICE_BIN=/opt/kaspersky/kes4lwks/sbin/kes4lwks-supervisor
+KL_SERVICE_CONFIG=/etc/opt/kaspersky/kes4lwks-supervisor.conf
+
+KLFW_CONTROL=/opt/kaspersky/kes4lwks/sbin/kes4lwks-supervisor-control
+
+. /opt/kaspersky/kes4lwks/lib/rcfunctions.sh
+
+INSTALLER_DAT="/var/opt/kaspersky/$KL_APP/installer.dat"
+LOCALE="$(kl_get_value "$INSTALLER_DAT" SERVICE_LOCALE)"
+
+if [ -z "$LOCALE" ] ; then
+    if [ -d /etc/locale ] ; then
+        for locale in en_US.utf8 en_US.UTF8 en_US.UTF-8 UTF-8 ; do
+            if [ -d "/etc/locale/$locale" ] ; then
+                LOCALE="$locale"
+                break
+            fi
+        done
+    else
+        LOCALE="$(locale -a|grep -ie 'en_US.UTF-\?8'|head -n 1)"
+    fi
+
+    [ -n "$LOCALE" ] || LOCALE='C'
+fi
+
+export LANG=$LOCALE
+export LC_ALL=$LOCALE
+
+# Reset status of this service
+kl_reset
+
+kl_run_dir=/var/run/kes4lwks
+if [ ! -e "$kl_run_dir" ] ; then
+    mkdir "$kl_run_dir"
+    chmod 0750 "$kl_run_dir"
+fi
+
+case "$1" in
+    start)
+        kl_action "Starting"
+        if ! $KLFW_CONTROL --start-supervisor ; then
+            kl_setrc 1
+        fi
+        kl_status -v
+        ;;
+
+    stop)
+        kl_action "Shutting down"
+        if ! $KLFW_CONTROL --stop-supervisor ; then
+            kl_setrc 1
+        fi
+        kl_status -v
+        ;;
+
+    try-restart|condrestart|force-reload)
+        # Do a restart only if the service was active before.
+        $0 status >/dev/null
+        if test $? = 0; then
+            $0 restart
+        else
+            kl_reset # Not running is not a failure.
+        fi
+
+        # Remember status and be quiet
+        kl_status
+        ;;
+
+    restart)
+        ## Stop the service and regardless of whether it was
+        ## running or not, start it again.
+        $0 stop
+        $0 start
+
+        # Remember status and be quiet
+        kl_status
+        ;;
+
+    reload)
+        ## Like force-reload, but if daemon does not support
+        ## signaling, do nothing (!)
+
+        # If it supports signaling:
+        #kl_action "Reload service"
+        #kl_killproc $KL_SERVICE_BIN -HUP
+        #kl_status -v
+
+        ## Otherwise if it does not support reload:
+        if [ "$KL_OS" = 'suse' ] ; then
+            rc_failed 3
+            kl_status -v
+        else
+            $0 restart
+        fi
+        ;;
+
+    status)
+        kl_action "Checking for service"
+        kl_checkproc $KL_SERVICE_BIN
+        kl_status -v
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|status|try-restart|restart|force-reload|reload}"
+        exit 1
+        ;;
+esac
+
+kl_exit
+ 

@@ -1,0 +1,123 @@
+Предподготовка:
+yum install epel-release -y
+yum -y install mlocate yum-utils net-utils nano sudo wget curl openssl jq
+yum -y install bash-completion-extras.noarch
+yum install erlang -y
+
+rpm --import http://www.rabbitmq.com/rabbitmq-signing-key-public.asc 
+## Так как дата создания пактов меняется, глянь на оф сайт.
+yum -y install http://www.rabbitmq.com/releases/rabbitmq-server/current/rabbitmq-server-3.6.10-1.el6.noarch.rpm
+yum install redis -y
+
+systemctl enable rabbitmq-server
+systemctl status rabbitmq-server
+systemctl enable sensu-server
+systemctl enable sensu-client
+systemctl enable sensu-api
+systemctl enable uchiwa
+systemctl enable redis
+
+rabbitmqctl add_vhost /sensu
+rabbitmqctl add_user sensu sensu
+rabbitmqctl set_permissions -p /sensu sensu ".*" ".*" ".*"
+
+## Add repo SENSU
+nano /etc/yum.repos.d/sensu.repo -w
+[sensu]
+name=sensu
+baseurl=https://sensu.global.ssl.fastly.net/yum/$releasever/$basearch/
+gpgcheck=0
+enabled=1
+
+yum install sensu uchiwa -y
+## Качаем ssl_generat http://sensuapp.org/docs/0.29/files/sensu_ssl_tool.tar, искал на оф сайте sensu 
+cd /tmp && wget http://sensuapp.org/docs/0.29/files/sensu_ssl_tool.tar && tar -xvf sensu_ssl_tool.tar
+## Генерируем:
+tar -xvf sensu_ssl_tool.tar
+cd sensu_ssl_tool
+./ssl_certs.sh generate
+
+sudo mkdir -p /etc/rabbitmq/ssl && sudo cp /tmp/sensu_ssl_tool/sensu_ca/cacert.pem /tmp/sensu_ssl_tool/server/cert.pem /tmp/sensu_ssl_tool/server/key.pem /etc/rabbitmq/ssl
+sudo mkdir -p /etc/sensu/ssl && sudo cp /tmp/sensu_ssl_tool/client/cert.pem /tmp/sensu_ssl_tool/client/key.pem /etc/sensu/ssl
+
+## Ставим ruby
+yum install -y ruby ruby-dev
+
+## Создаем конфигурационные файлы
+
+nano -w /etc/rabbitmq/rabbitmq.config
+###Start
+[
+    {rabbit, [
+    {ssl_listeners, [5671]},
+    {ssl_options, [{cacertfile,"/etc/rabbitmq/ssl/cacert.pem"},
+                   {certfile,"/etc/rabbitmq/ssl/cert.pem"},
+                   {keyfile,"/etc/rabbitmq/ssl/key.pem"},
+                   {verify,verify_peer},
+                   {fail_if_no_peer_cert,true}]}
+  ]}
+].
+###End
+
+nano -w /etc/rabbitmq/enabled_plugins 
+##Start
+[rabbitmq_management].
+##End
+
+nano -w /etc/sensu/conf.d/api.json
+##Start
+{
+  "transport": {
+    "name": "redis"
+  },
+  "api": {
+    "host": "localhost",
+    "port": 4567
+  }
+}
+##End
+
+nano -w /etc/sensu/uchiwa.json
+##Start
+{
+    "sensu": [
+        {
+            "name": "Sensu",
+            "host": "localhost",
+            "ssl": false,
+            "port": 4567,
+            "path": "",
+            "timeout": 5000
+        }
+    ],
+    "uchiwa": {
+        "port": 3000,
+        "stats": 10,
+        "refresh": 10000
+    }
+}
+##End
+
+nano -w /etc/sensu/conf.d/client.json
+##Start
+{
+  "client": {
+    "name": "sensu-server",
+    "address": "localhost",
+    "subscriptions": [ "ALL" ]
+  }
+}
+##End
+
+Проще в ребут
+reboot
+## Включаем rabbitmq_management
+rabbitmq-plugins enable rabbitmq_management
+
+Ставим sensu-plugins-disk-checks
+gem install sensu-plugins-disk-checks
+#Если получили ошибку:
+#mkmf.rb can't find header files for ruby at /usr/share/include/ruby.h
+
+yum -y install gcc-c++ redhat-rpm-config ruby-devel gcc rubygems
+

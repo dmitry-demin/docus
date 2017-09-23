@@ -1,0 +1,6 @@
+sudo apt-get install pcscd libccid libqt4-core libqt4-gui hal-info
+Download and install libhal1:
+http://packages.ubuntu.com/uk/precise/amd64/libhal1/download
+$ sudo dpkg -i libhal1_0.5.14-8_amd64.deb
+$ sudo dpkg -i libhal-storage1_0.5.14-8_amd64.deb
+$ sudo dpkg -i SAC\ 8.3\ Linux/Installation/Standard/DEB/SafenetAuthenticationClient-8.3.34-0_amd64.deb

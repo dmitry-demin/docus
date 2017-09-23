@@ -1,0 +1,69 @@
+Собираем nginx (waf) + push-stream-module + bind9  
+deb http://security.debian.org/ jessie/updates main
+deb-src http://security.debian.org/ jessie/updates main
+
+apt-get build-dep nginx
+apt-get source nginx
+cd nginx-1.6.2/debian/modules/
+git clone https://github.com/wandenberg/nginx-push-stream-module.git
+git clone https://github.com/SpiderLabs/ModSecurity.git
+
+Добавляем в правило full_configure_flags:
+			--add-module=$(MODULESDIR)/ModSecurity/nginx/modsecurity \
+                        --add-module=$(MODULESDIR)/nginx-push-stream-module \
+
+nano -w /home/demin/nginx-1.6.2/debian/conf/sites-available/default
+В корень включаем modsecurity
+	location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+        ModSecurityEnabled on;
+        ModSecurityConfig modsec_includes.conf;
+        }
+
+touch /home/demin/nginx-1.6.2/debian/conf/modsec_includes.conf
+include modsecurity.conf
+include owasp-modsecurity-crs/crs-setup.conf
+include owasp-modsecurity-crs/rules/*.conf
+
+mv modsecurity.conf-recommended modsecurity.conf
+        
+cd nginx-1.6.2/debian/conf
+git clone https://github.com/SpiderLabs/owasp-modsecurity-crs.git
+cd owasp-modsecurity-crs
+mv crs-setup.conf.example crs-setup.conf
+cd rules
+mv REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf.example REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf
+mv RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf.example RESPONSE-999-EXCLUSION-RULES-AFTER-CRS.conf
+
+
+./configure
+fakeroot debian/rules binary
+Если сыпиться на ошибке lua.h
+
+nano -w debian/modules/ModSecurity/nginx/modsecurity/config.in
+удалить apache
+
+fakeroot debian/rules clean
+fakeroot debian/rules binary
+
+git clone https://github.com/vyos/vyos-build.git
+
+cd vyos-build/
+cp ../nginx-common_1.6.2-5+deb8u5_all.deb ../nginx-full_1.6.2-5+deb8u5_amd64.deb packages/
+cp ../named9*.deb ../namedutils* и т.д. packages/
+
+./configure
+make iso
+
+Вуаля
+
+
+У nginx после всего этого появилась ошибка
+warn modsecurity loaded pcre do not match with compiled
+
+ставим:
+apt-get install libpcre3-dev
+
+Ошибка исчезает.

@@ -1,0 +1,151 @@
+yum install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+
+yum search centos-release-gluster
+yum update -y
+
+yum install centos-release-gluster37 
+yum install glusterfs gluster-cli glusterfs-libs glusterfs-server
+yum install  glusterfs-geo-replication.x86_64 
+yum install glusterfs glusterfs-fuse attr -y
+
+systemctl enable glusterd.service
+systemctl start glusterd.service
+
+firewall-cmd --zone=public --add-port=24007-24008/tcp --permanent
+firewall-cmd --zone=public --add-port=24009/tcp --permanent
+firewall-cmd --zone=public --add-port=111/tcp --add-port=965/tcp --add-port=2049/tcp \
+--add-port=38465-38469/tcp --add-port=631/tcp --add-port=111/udp --add-port=963/udp --add-port=49152-49251/tcp  --permanent
+firewall-cmd --zone=public --add-port=24010/tcp --permanent
+
+firewall-cmd --reload
+
+
+##Если потребуется samba
+yum install glusterfs-server samba -y
+firewall-cmd --zone=public --add-port=111/tcp --add-port=139/tcp --add-port=445/tcp --add-port=965/tcp --add-port=2049/tcp \
+--add-port=38465-38469/tcp --add-port=631/tcp --add-port=111/udp --add-port=963/udp --add-port=49152-49251/tcp  --permanent
+#firewall-cmd --zone=public --add-service=nfs --add-service=samba --add-service=samba-client --permanent
+Подробно описано в wiki:
+https://wiki.centos.org/HowTos/GlusterFSonCentOS#head-35a3940804f39f4b0f940f78141aa5aef9b89740
+### END Samba
+
+
+
+###Script
+for i in `1 2`;do
+echo "1.1.1.$i net-node$i.example.com" >> /etc/hosts
+done
+echo "1.1.1.3 net-master.example.com" >> /etc/hosts
+####End Script
+
+gluster peer probe net-node1
+gluster peer probe net-node2
+gluster peer probe net-master
+
+
+### Check Status
+gluster peer status
+gluster volume info all
+
+
+## Основная настройка geo MAster node
+## Сайт https://gluster.readthedocs.io/en/latest/Administrator%20Guide/Geo%20Replication/
+## Первый вариант
+ssh-keygen -f /var/lib/glusterd/geo-replication/secret.pem
+
+cat /var/lib/glusterd/geo-replication/secret.pem.pub | ssh root@net-node1 "cat >> ~/.ssh/authorized_keys"
+cat /var/lib/glusterd/geo-replication/secret.pem.pub | ssh root@net-node2 "cat >> ~/.ssh/authorized_keys"
+mkdir /gluster
+mkdir /gluster/geo-replication
+### Второй
+rsync -avP /root/.ssh/ net-node1:/root/.ssh/
+rsync -avP /root/.ssh/ net-node2:/root/.ssh/
+###
+
+## LVM create
+/gluster/geo-replication - лучше всего выносить brick в lvm
+lvcreate -ngluster -L10G system_vg
+mkfs.xfs /dev/mapper/system_vg-gluster
+mkdir /gluster
+mount /dev/mapper/system_vg-gluster /gluster
+##mkdir -p /gluster/{geo-replication,geo-replication2,geo-replication3} и т.д.
+mkdir -p /gluster/geo-replication
+#### End LVM
+## gluster volume create [VOLUME] [BRICK] force
+gluster volume create web net-master:/gluster/geo-replication force
+gluster volume web start
+### Подготовка slave
+## Без  lvm
+mkdir -p /gluster/geo-replication
+##
+
+cat /etc/glusterfs/glusterd.vol
+volume management
+    type mgmt/glusterd
+    option working-directory /var/lib/glusterd
+    option transport-type socket,rdma
+    option transport.socket.keepalive-time 10
+    option transport.socket.keepalive-interval 2
+    option transport.socket.read-fail-log off
+    option ping-timeout 3
+    option event-threads 1
+#    option base-port 49152
+    option mountbroker-root /gluster/geo-replication
+    option mountbroker-geo-replication.root slave-net-node1
+    option geo-replication-log-group root
+end-volume
+
+systemctl restart glusterd.service
+
+## На мастере выпролняем следующие команды
+gluster system:: execute gsec_create
+
+gluster volume geo-replication web net-node1::slave-net-node1 create push-pem force
+gluster volume geo-replication web net-node1::slave-net-node1 start force
+
+## Смотрим статус и проверяем лог
+gluster volume geo-replication web net-node1::slave-net-node1 status detail
+gluster volume geo-replication web net-node1::slave-net-node1 config log-file
+
+Если в лог файле увидим что-то в этом духе root@net-node1 /nonexistent/gsyncd
+Я полечил просто заменив в файле 
+/var/lib/glusterd/vols/slave-net-node1/slave-net-node1.net-node1.gluster-geo-replication.vol
+/nonexistent/gsyncd на /usr/libexec/glusterfs/gsyncd
+
+gluster volume geo-replication web net-node1::slave-net-node1 stop
+gluster volume geo-replication web net-node1::slave-net-node1 start force
+
+реплика заработала
+
+Монтируем все это дело
+mount.glusterfs net-master:/web /var/www
+mount.glusterfs net-node1:/slave-net-node1 /var/www
+Добавляем в fstab
+net-master:/web                /var/www        glusterfs       defaults,_netdev        0 0
+
+
+Командочки на все случаи жизни
+gluster system:: execute gsec_create
+Create
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> create push-pem [force]
+Starting
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> start
+Status
+gluster volume geo-replication <master_volume> <slave_volume>::<slave_volume> status
+or
+gluster volume geo-replication <master_volume> <slave_volume>::<slave_volume> status detail
+Stop
+gluster volume geo-replication <master_volume> <slave_volume>::<slave_volume> stop [force]
+Delete
+gluster volume geo-replication <master_volume> <slave_volume>::<slave_volume> delete
+Edit config (check)
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config log-file
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config change-detector
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config working-directory
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config change-detector xsync
+
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config use-tarssh true
+Reset use-tarssh
+gluster volume geo-replication <master_volume> <slave_host>::<slave_volume> config \!use-tarssh
+

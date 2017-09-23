@@ -1,0 +1,32 @@
+ 
+git clone https://evilpiepirate.org/git/bcache-tools.git bcache
+
+cd bcache
+yum -y install libblkid-devel libuuid-devel
+
+Установлено:
+  libblkid-devel.x86_64 0:2.23.2-43.el7                                                                                                                                                                                                      
+
+Установлены зависимости:
+  libuuid-devel.x86_64 0:2.23.2-43.el7                                                                                                                                                                                                       
+
+Выполнено!
+[root@sl-kvm-1 demin]# cd bcache
+[root@sl-kvm-1 bcache]# make
+cc -O2 -Wall -g `pkg-config --cflags uuid blkid`    make-bcache.c bcache.o  `pkg-config --libs uuid blkid` -o make-bcache
+cc -O2 -Wall -g `pkg-config --cflags uuid blkid`    probe-bcache.c  `pkg-config --libs uuid blkid` -o probe-bcache
+cc -O2 -Wall -g -std=gnu99    bcache-super-show.c bcache.o  `pkg-config --libs uuid` -o bcache-super-show
+cc -O2 -Wall -g   -c -o bcache-register.o bcache-register.c
+cc   bcache-register.o   -o bcache-register
+[root@sl-kvm-1 bcache]# make install 
+install -m0755 make-bcache bcache-super-show    /usr/sbin/
+install -m0755 probe-bcache bcache-register             /lib/udev/
+install -m0644 69-bcache.rules  /lib/udev/rules.d/
+install -m0644 -- *.8 /usr/share/man/man8/
+install -D -m0755 initramfs/hook        /usr/share/initramfs-tools/hooks/bcache
+install -D -m0755 initcpio/install      /usr/lib/initcpio/install/bcache
+install -D -m0755 dracut/module-setup.sh /lib/dracut/modules.d/90bcache/module-setup.sh
+
+
+
+

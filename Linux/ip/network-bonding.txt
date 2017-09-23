@@ -1,0 +1,48 @@
+Настройка ifcfg-{eth}
+
+[root@server_02 ~]# cat /etc/sysconfig/network-scripts/ifcfg-em3
+TYPE="Ethernet"
+DEVICE="em3"
+BOOTPROTO="none"
+ONBOOT="yes"
+SLAVE="yes"
+MASTER="bond0"
+USERCTL="no"
+NAME="bond0-slave1"
+NM_CONTROLLED="no"
+MTU="9000"
+
+[root@server_02 ~]# cat /etc/sysconfig/network-scripts/ifcfg-em4
+TYPE="Ethernet"
+DEVICE="em4"
+BOOTPROTO="none"
+ONBOOT="yes"
+SLAVE="yes"
+MASTER="bond0"
+USERCTL="no"
+NAME="bond0-slave2"
+NM_CONTROLLED="no"
+MTU="9000"
+
+
+Добавляем сетевой интерфейс для бондинга:
+/etc/sysconfig/network-scripts/ifcfg-bond0
+TYPE=Bond
+NAME=bond0
+DEVICE=bond0
+BONDIG_MASTER=yes
+ONBOOT=yes
+USERCTL=no
+BOOTPROTO=none
+MTU=9000
+IPV6INIT=no
+NM_CONTROLLED=no
+BONDING_OPTS="mode=802.3ad xmit_hash_policy=layer2+3 lacp_rate=1 miimon=100"
+IPADDR=192.168.10.13
+PREFIX=24
+GATEWAY=192.168.10.9
+DNS1=192.168.10.2
+DNS2=8.8.8.8
+
+
+

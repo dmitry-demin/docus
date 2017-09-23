@@ -1,0 +1,18 @@
+Создаем новый диск
+qemu-img create -f qcow2 centos7.0_d2.qcow2 140G
+
+Создаем xml файл
+<disk type='file' device='disk'>
+   <driver name='qemu' type='qcow2'/>
+   <source file='/var/lib/libvirt/images/centos7.0_d2.qcow2'/>
+   <target dev='vdb' bus='virtio'/>
+</disk>
+
+Где dev='vdb' --- должен быть поменен на новый диск (vda)
+
+Добавляем в настройки виртуальной машины:
+virsh attach-device centos7.0 /root/add_disk.xml
+Где centos7 - название vm
+
+На Linux машине передергиваем scsi
+echo 1 > /sys/class/scsi_device/device/rescan

@@ -1,0 +1,40 @@
+
+set nat destination rule 6087
+set nat destination rule 6087 destination address 192.168.0.52
+set nat destination rule 6087 destination port 6087
+set nat destination rule 6087 inbound-interface eth0
+set nat destination rule 6087 translation address 192.168.0.52
+set nat destination rule 6087 protocol tcp
+
+set nat destination rule 6088
+set nat destination rule 6088 destination address 192.168.0.52
+set nat destination rule 6088 destination port 6088
+set nat destination rule 6088 inbound-interface eth0
+set nat destination rule 6088 translation address 192.168.0.52
+set nat destination rule 6088 protocol tcp
+
+set nat destination rule 6089
+set nat destination rule 6089 destination address 192.168.0.52
+set nat destination rule 6089 destination port 6089
+set nat destination rule 6089 inbound-interface eth0
+set nat destination rule 6089 translation address 192.168.0.52
+set nat destination rule 6089 protocol tcp
+
+
+set nat destination rule 6090
+set nat destination rule 6090 destination address 192.168.0.52
+set nat destination rule 6090 destination port 6090
+set nat destination rule 6090 inbound-interface eth0
+set nat destination rule 6090 translation address 192.168.0.52
+set nat destination rule 6090 protocol tcp
+
+set nat destination rule 6091
+set nat destination rule 6091 destination address 192.168.0.52
+set nat destination rule 6091 destination port 6091
+set nat destination rule 6091 inbound-interface eth0
+set nat destination rule 6091 translation address 192.168.0.52
+set nat destination rule 6091 protocol tcp
+
+commit
+save
+

@@ -1,0 +1,56 @@
+Настройка vlan Gentoo
+
+
+DES-3526:admin#config vlan vlanid 1 delete 1-26
+
+DES-3526:admin#create vlan vlan2 tag 2
+DES-3526:admin#create vlan vlan3 tag 3  
+DES-3526:admin#create vlan vlan4 tag 4
+DES-3526:admin#create vlan vlan5 tag 5
+DES-3526:admin#config vlan vlanid 2 add untagged 1-6
+DES-3526:admin#config vlan vlanid 2 add tagged 25,26
+DES-3526:admin#config vlan vlanid 3 add untagged 7-12
+DES-3526:admin#config vlan vlanid 3 add tagged 25-26
+DES-3526:admin#config vlan vlanid 4 add untagged 13-19
+DES-3526:admin#config vlan vlanid 4 add tagged 25-26
+DES-3526:admin#config vlan vlanid 5 add untagged 20-24
+DES-3526:admin#config vlan vlanid 5 add tagged 25-26
+
+nano -w /etc/conf.d/net
+
+vlans_enp1s0="2 3 4 5"
+config_enp1s0="null"
+
+vlan2_name="vlan2"
+vlan3_name="vlan3"
+vlan4_name="vlan4"
+vlan5_name="vlan5"
+
+config_vlan2="10.0.12.252/24"
+config_vlan3="10.10.8.1/24"
+config_vlan4="10.10.9.1/24"
+config_vlan5="10.10.10.1/24"
+
+vlan_start_enp1s0="no"
+rc_need_vlan5="net.enp1s0"
+rc_need_vlan4="net.enp1s0"
+rc_need_vlan3="net.enp1s0"
+rc_need_vlan2="net.enp1s0"
+
+cd /etc/init.d
+ln -sf net.lo net.vlan2
+ln -sf net.lo net.vlan3
+ln -sf net.lo net.vlan4
+ln -sf net.lo net.vlan5
+
+rc-update add net.lo default
+rc-update add net.vlan2 default
+rc-update add net.vlan3 default
+rc-update add net.vlan4 default
+rc-update add net.vlan5 default
+
+
+emerge -aqv net-misc/dhcp
+
+cd /etc/dhcp/
+cp dhcpd.conf dhcpd.conf_original

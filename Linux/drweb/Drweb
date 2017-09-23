@@ -1,0 +1,77 @@
+cat /var/lib/lxc/drweb-demin/rootfs/etc/centos-release
+CentOS release 6.8 (Final)
+
+Установка DRweb 
+yum -y install "Development tools"
+yum -y install epel-release.noarch
+yum -y install tar glibc.i686 mlocate openssh-server vim
+
+chkconfig sshd on
+
+Для установки пакетов DrWeb рекомендуется на время остановить демона SELINUX, проверяем:
+getenforce
+Если значение в положении Disable, тогда делать ни чего не надо.
+
+Установка
+chmod +x  /root/drweb-11.0.2-av-linux-amd64.run
+Пройдя регистрацию в Компании DrWeb, должны получить 2 ключа agent.key и enterprise.key, так же серийный номер.
+
+Так как установка происходит без GUI, выполняем все шаги (Соглашаемся)
+Убеждаемся, что сервис запущен.
+Далее, проводим регистрацию, по серийному номеру.
+drweb-ctl license --GetRegistered XXXX-XXXX-XXXX-XXXX
+Проверяем, что лицензия встала:
+drweb-ctl license 
+License number 134626791, expires 2019-Mar-31 08:46:28 (733 days left)
+
+В теории после регистрации drweb сам должен произвести автоматическое обновление баз, если по каким-то причинам это не произошло, тогда вбиваем команду:
+drweb-ctl update
+
+Должны получить ответ следующего типа:
+  Update request accepted
+  Preparing...
+  Checking...
+  All files are up to date
+
+Смотрим с какими опциями запущен антивирус:
+drweb-ctl cfshow
+
+Изменение настроек, предварительно сохраним изменения:
+cp /etc/opt/drweb.com/drweb.ini /etc/opt/drweb.com/drweb.ini.save
+
+Если вы ошиблись в настройках, сброс настроек производится следующем образом:
+> /etc/opt/drweb.com/drweb.ini
+/etc/init.d/drweb-configd restart
+
+
+Настройки drweb.ini
+cat /etc/opt/drweb.com/drweb.ini 
+[Root]
+UseCloud = No
+
+[Update]
+UpdateInterval = 15m
+
+[LinuxSpider]
+Start = No
+
+[GateD]
+InspectHttp = Off
+InspectPop3 = Off
+InspectImap = Off
+InspectSmtp = Off
+
+[LinuxFirewall]
+BlockInfectionSource = No
+BlockNotRecommended = No
+BlockDueToCopyrightNotice = No
+BlockKnownVirus = No
+BlockSuspicious = No
+BlockAdware = No
+BlockDialers = No
+
+[LinuxGUI]
+CheckEmails = No
+CheckArchives = No
+AutoApplying = No
+

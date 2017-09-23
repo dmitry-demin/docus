@@ -1,0 +1,100 @@
+ 
+yum install epel-release
+yum update -y
+yum install apcupsd -y
+
+
+
+systemctl enable apcupsd
+
+[root@pdc www2]# lsusb
+Bus 001 Device 003: ID 051d:0003 American Power Conversion UPS
+
+yum -y install lshw
+
+              *-usb:1
+                   description: Human interface device
+                   product: Smart-UPS 3000 FW:UPS 09.3 / ID=18
+                   vendor: American Power Conversion
+                   physical id: e
+                   bus info: usb@1:e
+                   version: 1.06
+                   serial: AS1550141438
+                   capabilities: usb-2.00
+                   configuration: driver=usbhid maxpower=2mA speed=12Mbit/s
+
+[root@pdc www2]# egrep -v '^#|^$' /etc/apcupsd/apcupsd.conf
+
+UPSCABLE usb
+UPSTYPE usb
+## Ранее я указывал на /dev/usb/hiddev0, но гугл сказал, что так не нужно
+DEVICE 
+##должна быть директория lock
+LOCKFILE /var/run/lock
+SCRIPTDIR /etc/apcupsd
+PWRFAILDIR /etc/apcupsd
+NOLOGINDIR /etc
+ONBATTERYDELAY 6
+BATTERYLEVEL 5
+MINUTES 3
+TIMEOUT 0
+ANNOY 300
+ANNOYDELAY 60
+NOLOGON disable
+KILLDELAY 0
+NETSERVER on
+EVENTSFILE /var/log/apcupsd.events
+EVENTSFILEMAX 10
+UPSCLASS standalone
+UPSMODE disable
+STATTIME 0
+STATFILE /var/log/apcupsd.status
+LOGSTATS off
+DATATIME 0
+WAKEUP 60
+SLEEP 180
+
+#####Запускаем apctest
+
+[root@pdc ~]# apctest
+
+
+2017-06-29 18:01:35 apctest 3.14.14 (31 May 2016) redhat
+Checking configuration ...
+sharenet.type = Network & ShareUPS Disabled
+cable.type = USB Cable
+mode.type = USB UPS Driver
+Setting up the port ...
+Doing prep_device() ...
+
+You are using a USB cable type, so I'm entering USB test mode
+Hello, this is the apcupsd Cable Test program.
+This part of apctest is for testing USB UPSes.
+
+Getting UPS capabilities...SUCCESS
+
+Please select the function you want to perform.
+
+1)  Test kill UPS power
+2)  Perform self-test
+3)  Read last self-test result
+4)  View/Change battery date
+5)  View manufacturing date
+6)  View/Change alarm behavior
+7)  View/Change sensitivity
+8)  View/Change low transfer voltage
+9)  View/Change high transfer voltage
+10) Perform battery calibration
+11) Test alarm
+12) View/Change self-test interval
+ Q) Quit
+
+Select function number: 10
+
+Если при тыканье на кнопки получаем, вот это:
+I don't know how to run a battery calibration on your UPS
+or your UPS does not support battery calibration
+
+увы, нам не повезло, последняя версия была выпущена 
+[root@pdc ~]#  apcupsd -V 
+apcupsd 3.14.14 (31 May 2016) redhat

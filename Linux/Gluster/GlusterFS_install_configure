@@ -1,0 +1,117 @@
+Официальный сайт компании разработчика: 
+http://gluster.readthedocs.io/en/latest/Quick-Start-Guide/Quickstart/#step-1-have-at-least-two-nodes
+
+
+На docker мое тестирование не удалось на момент написания, проблема связана с xattr и из-за этого доступ к brick вываливается с ошибкой:
+failed: Glusterfs is not supported on brick
+
+
+
+Собственно установка ни чем не отличается сверх сложных задачь:
+apt-get install glusterfs-server 
+
+Докучи поставится common и client
+
+После установки, проверить работоспособность systemctl status glusterfs-server
+
+Если запущена служба, тогда:
+
+Добавить машинки в hosts
+
+for i in `1 2`;do
+echo "1.1.1.$i server$i.example.com" >> /etc/hosts
+done
+
+На перной ноде проверить сервера
+gluster peer probe server2.example.com
+На втрой ноде аналогично
+gluster peer probe server1.example.com
+
+Далее, после того, как убедились, что ноды видят друг друга
+gluster peer status
+, пробуем инициализировать: 
+
+
+Настройка distributed volume
+При данной настройке данные будут распределяться в случайном порядке между каждой папкой, которая входив в volume.
+Создадим на первом сервере паки dist1, dist2, на втором – dist3, dist4.
+server1:~# mkdir /mnt/dist{1,2}
+server2:~# mkdir /mnt/dist{3,4}
+
+Теперь можно создать и стартануть volume.
+
+server1:~# gluster volume create distributed transport tcp server1:/mnt/dist1 server1:/mnt/dist2 server2:/mnt/dist3 server2:/mnt/dist4 force        
+Creation of volume distributed has been successful. Please start the volume to access data.
+server1:~# gluster volume start distributed
+Starting volume distributed has been successful
+
+
+Настройка replicated volume (Аналог RAID1)
+gluster volume create replicated replica 4 transport tcp server1:/mnt/repl1 server2:/mnt/repl3 server1:/mnt/repl2 server2:/mnt/repl4 force
+gluster volume start replicated
+
+Настройка striped volume
+
+При данной настройке файлы будут разбиваться на части и каждый кусок будет храниться в каждой из папок которая входит в volume. Такой тип распределения контента подходит для хранение емкостных данных с очень большим размером (видеоконтент в хорошем качестве, к примеру). Разумеется, количество папок входящих в volume должно быть эквивалентно значению stripe. Т.е. если у нас 5 серверов, то файл будет разбиваться на 5 частей и каждый его кусочек будет храниться на всех 5 серверах.
+Создадим на первом сервере паки strip1, strip2, на втором – strip3, strip4. 
+
+server1:~# mkdir /mnt/strip{1,2}
+server2:~# mkdir /mnt/strip{3,4}
+
+gluster volume create striped stripe 4 transport tcp server1:/mnt/strip1 server1:/mnt/strip2 server2:/mnt/strip3 server2:/mnt/strip4 force
+gluster volume start striped
+
+
+Настройка distributed striped volume
+
+При данной настройке файлы будут разбиваться на части и куски файлов будут распределяться по папкам и храниться в одной из них. Разумеется, количество папок входящих в volume должно быть кратно значению stripe. Т.е. если у нас 8 серверов и значение stripe равно 4, то файлы будут разбиваться на 4 части и храниться или на первых 4-х серверах или на следующей 4-ке серверов. Так же само, если у нас 4 сервера и stripe равно 2, то файлы будут разбиваться на 2 части и храниться на первых 2-х или на следующих 2-х серверах.
+Создадим на первом сервере паки dist-strip1, dist-strip2, на втором – dist-strip3, dist-strip4. 
+
+server1:~# mkdir /mnt/dist-strip{1,2}
+server2:~# mkdir /mnt/dist-strip{3,4}
+
+gluster volume create distributed-striped stripe 2 transport \ 
+tcp server1:/mnt/dist-strip1 server2:/mnt/dist-strip3 server1:/mnt/dist-strip2 server2:/mnt/dist-strip4 force
+gluster volume start distributed-striped
+
+
+
+Настройка distributed replicated volume
+
+При данной настройке данные будут распределяться в случайном порядке между папками и каждая папка имеет свою зеркальную копию. Разумеется, количество папок входящих в volume должно быть кратно значению replica. Т.е. если у нас 4 сервера и значение replica равно 2, то файлы будут распределяться по 2-м серверам в произвольном порядке, а 2 оставшихся сервера будут хранить идентичную копию контента первых двух. Если у нас 8 серверов и replica равно 4, то у нас будет одно зеркало из 4-х серверов.
+Создадим на первом сервере паки dist-repl1, dist-repl2, на втором – dist-repl3, dist-repl4. 
+
+server1:~# mkdir /mnt/dist-repl{1,2}
+server2:~# mkdir /mnt/dist-repl{3,4}
+
+gluster volume create distributed-replicated replica 2 transport \ 
+tcp server1:/mnt/dist-repl1 server2:/mnt/dist-repl3 server1:/mnt/dist-repl2 server2:/mnt/dist-repl4 force
+gluster volume start distributed-replicated
+
+
+
+Итого:
+gluster volume info
+
+
+Настройка клиентской части
+
+mkdir /mnt/distrib
+mount.glusterfs server1:/distributed /mnt/distrib/
+
+И так далее. 
+
+Права на сетевой русурс
+gluster volume set [VOLUME] auth.allow [IP,10.1.1.*,10.5.5.1]
+где VOLUME - название реплики (шары)
+где IP - ip адреса.
+
+Далее, нужно заставить автоматом подмонтировать все fstab
+
+
+
+server1:/distributed /var/www/test_site glusterfs defaults,_netdev 0 0
+нода:volume_data when mount --> type etc...
+
+Итог, все круто! 
+

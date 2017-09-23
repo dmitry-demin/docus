@@ -1,0 +1,62 @@
+yum -y update
+hostnamectl set-hostname git.example.com
+sed -i /etc/selinux/config -r -e 's/^SELINUX=.*/SELINUX=disabled/g'
+setenforce disabled
+
+mysql -u root -p
+CREATE DATABASE git;
+GRANT ALL ON git.* to 'git'@'localhost' IDENTIFIED BY 'set_database_password';
+use gogs;
+SET default_storage_engine=INNODB;
+FLUSH PRIVILEGES;
+
+
+yum -y install git
+git --version
+
+
+rpm --import https://rpm.packager.io/key
+echo -e "[gogs]\n
+name=Repository for pkgr/gogs application.\n
+baseurl=https://rpm.packager.io/gh/pkgr/gogs/centos7/pkgr\n
+enabled=1" | tee /etc/yum.repos.d/gogs.repo
+
+
+
+yum -y install gogs
+systemctl start gogs
+systemctl enable gogs
+systemctl status gogs
+
+эТо я не ставил стащил на память
+
+wget https://dl.eff.org/certbot-auto
+chmod +x certbot-auto 
+mv certbot-auto /usr/bin/certbot-auto
+
+certbot-auto certonly --standalone -d git.example.com
+
+
+[root@ip-172-31-17-38 ~]# certbot-auto certonly --standalone -d git.example.comIMPORTANT NOTES:
+     - Congratulations! Your certificate and chain have been saved at
+       /etc/letsencrypt/live/git.example.com/fullchain.pem. Your cert
+       will expire on 2016-12-09. To obtain a new or tweaked version of
+       this certificate in the future, simply run certbot-auto again. To
+       non-interactively renew *all* of your certificates, run
+       "certbot-auto renew"
+     - If you like Certbot, please consider supporting our work by:
+
+Donating to ISRG / Let's Encrypt: https://letsencrypt.org/donate Donating to EFF: https://eff.org/donate-le 
+
+nano /etc/nginx/conf.d/gogs.conf
+server {
+        listen 80;
+        server_name git.example.com;
+        return 302 https://$server_name$request_uri;
+    }server {
+        listen 443 ssl;
+        server_name git.example.com;ssl_certificate /etc/letsencrypt/live/git.example.com/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/git.example.com/privkey.pem;
+
+location / { proxy_set_header X-Real-IP $remote_addr; proxy_pass http://localhost:3000; } } 
+

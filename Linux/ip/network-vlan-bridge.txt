@@ -1,0 +1,70 @@
+#
+#	В настройках Cisco я указываю подключение Tagged
+#	Тогда данная схема работает, настройку производил на 
+#	оборудовании SG200-26 26-Port Gigabit Smart Switch
+#
+#
+#
+#
+#Network card configuration
+cat /etc/sysconfig/network-scripts/ifcfg-em3
+TYPE="Ethernet"
+DEVICE="em3"
+BOOTPROTO="none"
+ONBOOT="yes"
+
+#Vlan configuration 121,122
+# Таких вланов можно насоздавать мульон
+cat /etc/sysconfig/network-scripts/ifcfg-em3.121
+NAME=em3.121
+DEVICE=em3.121
+BOOTPROTO=none
+ONBOOT=yes
+VLAN=yes
+ONPARENT=yes
+NM_CONTROLLED=no
+BRIDGE=br121
+
+# Vlan122
+cat /etc/sysconfig/network-scripts/ifcfg-em3.122
+NAME=em3.122
+DEVICE=em3.122
+BOOTPROTO=none
+ONBOOT=yes
+VLAN=yes
+ONPARENT=yes
+NM_CONTROLLED=no
+BRIDGE=br122
+
+
+#Bridge configuration 121,122
+# Таких мостов делать тоже мульон
+cat /etc/sysconfig/network-scripts/ifcfg-br121
+DEVICE="br121"
+TYPE="Bridge"
+#BOOTPROTO="none"
+BOOTPROTO="static"
+ONBOOT="yes"
+IPADDR=192.168.0.52
+PREFIX=24
+GATEWAY=192.168.0.254
+DNS1=192.168.10.2
+DNS2=8.8.8.8
+NM_CONTROLLED="no"
+
+# Bridge 122
+cat /etc/sysconfig/network-scripts/ifcfg-br122
+DEVICE="br122"
+TYPE="Bridge"
+BOOTPROTO="none"
+ONBOOT="yes"
+#IPADDR=192.168.122.1
+#PREFIX=24
+#GATEWAY=192.168.10.9
+#DNS1=192.168.10.2
+#DNS2=8.8.8.8
+NM_CONTROLLED="no"
+
+
+
+

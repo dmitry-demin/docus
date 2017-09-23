@@ -1,0 +1,73 @@
+Установка и настройка подписей под Linux
+
+Устанавливаем java
+
+su -
+echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee /etc/apt/sources.list.d/webupd8team-java.list
+echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu xenial main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886
+apt-get update
+apt-get install oracle-java8-installer
+exit
+
+Установка Java по умолчанию.
+sudo apt-get install oracle-java8-set-default
+
+Если потребуется настройка Java, требуется воспользоваться утилитой update-alternative
+
+Далее с оф.сайта качаем http://portablesigner.sourceforge.net/
+
+разархивируем в удобное для нас место unzip
+
+Работать с ней просто:
+
+java -jar PortableSigner.jar -h
+usage: PortableSigner
+ -b <arg>              Append signature block [german|english|polish] as
+                       parameter
+ -c <arg>              Comment under signature block (text)
+ -f                    If this is set, the document is NOT finalized
+ -h                    Help (this page)
+ -i <arg>              Image file for signature block
+ -l <arg>              Contents of "Location" - field (text)
+ -n                    Without GUI
+ -o <arg>              Outputfile (PDF)
+ -ownerpwd <arg>       Owner password
+ -ownerpwdfile <arg>   Owner password file
+ -p <arg>              Signaturepassword
+ -pwdfile <arg>        Password file
+ -r <arg>              Contents of "Reason" - field (text)
+ -s <arg>              Signaturefile (P12 or PFX)
+ -t <arg>              Inputfile (PDF)
+
+Мой пример:
+java -jar PortableSigner.jar -n -t /home/demin/pdf_sign/test/new/40837504_64292314130002_LL1466189_a.pdf -o /home/demin/pdf_sign/test/end/40837504_64292314130002_LL1466189_a.pdf \
+-s crt_new/server_root_geotrast.p12 -l "г. Люберцы, ул. Октябрьский пр-т, д. 183" -r "Так захотел2" -pFynhfwbn\!1
+
+
+Если потребуется конверация ключей в pkcs12 тоды делаем следующее:
+
+openssl pkcs12 -export -out crt_new/server_root_geotrast.p12 -inkey crt_new/rsa-gemotest.key -in crt_new/gemotest.cer -certfile /etc/ssl/certs/ca-certificates.crt
+openssl pkcs12 -info -in crt_new/server_root_geotrast.p12
+
+Сайт в помощь с сертификатами:
+https://www.sslshopper.com/article-most-common-openssl-commands.html
+
+
+Тоже очень интересная программа (кроссплатформенная):
+http://jsignpdf.sourceforge.net/
+
+работа с ней - Запрет на редактирование pdf файла:
+java -jar JSignPdf.jar -kst PKCS12 -ksf cert/out_cert.pfx -ksp "" \
+-pr DISALLOW_PRINTING pdf/in/40816237_64286417180001_LL1466189_a.pdf -d pdf/out/ \
+--disable-modify-content --disable-screen-readers \
+--disable-modify-annotations --disable-fill --disable-copy --disable-assembly \
+--disable-acrobat6-layer-mode -a --certification-level CERTIFIED_NO_CHANGES_ALLOWED
+
+На Windows так же работает разрешено редактировать pdf файл:
+
+java.exe -jar C:\pdf_sign\JSignPDF\jsignpdf-1.6.1\JSignPdf.jar -kst PKCS12 -ksf C:\pdf_sign\JSignPDF\jsignpdf-1.6.1\cert\out_cert.pfx -ksp "" -pr DISALLOW_PRINTING C:\pdf_sign\JSignPDF\jsignpdf-1.6.1\pdf\in\40816237_64286417180001_LL1466189_a.pdf -d C:\pdf_sign\J
+SignPDF\jsignpdf-1.6.1\pdf\out\
+
+Где - -ksp "" - обозначает пустой пароль
+Остальное смотрите в справке.

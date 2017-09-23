@@ -1,0 +1,23 @@
+### Устанавливаем требуемые пакеты:
+sudo yum -y install netpbm-progs.x86_64 netpbm-devel.x86_64 netpbm
+
+### Обрабатываем фото
+pngtopnm kernel_logo.png | ppmquant -fs 223 | pnmtoplainpnm > logo_linux_clut224.ppm
+
+### Кладем в новое ядро logo_linux_clut224.ppm
+### Для этого нам нужно посмотри описание как сделать ядро в Centos 
+### и скопировать его в директорию /home/kernel/rpmbuild/BUILD/kernel-3.10.0-514.26.2.el7/linux-3.10.0-514.26.2.el7.x86_64/drivers/video/logo/
+
+cp /home/kernel/rpmbuild/SPECS/logo_linux_clut224.ppm /home/kernel/rpmbuild/BUILD/kernel-3.10.0-514.26.2.el7/linux-3.10.0-514.26.2.el7.x86_64/drivers/video/logo/logo_linux_clut224.ppm
+cp: переписать «/home/kernel/rpmbuild/BUILD/kernel-3.10.0-514.26.1.el7/linux-3.10.0-514.26.1.el7.x86_64/drivers/video/logo/logo_linux_clut224.ppm»? y
+
+### Далее пересобрать ядро.
+cd ~/rpmbuild/SPECS/
+rpmbuild -bb --with baseonly --without debuginfo --target=`uname -m` kernel.spec
+
+
+
+
+
+
+

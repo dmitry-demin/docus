@@ -1,0 +1,60 @@
+Операционная система Centos7
+подключаем модули, в ядре на момент написания 
+uname -r
+3.10.0-327.el7.x86_64
+
+Ставим утилиту проверки работы 
+yum -y install sysfsutils
+yum -y install targetcli
+
+#Проверка доступности 
+systool | grep fc
+
+systool -vc fc_host
+### Выхлоп здоровый, показываю самое необходимое.
+Class = "fc_host"
+  Class Device = "host1"
+  Class Device path = "/sys/devices/pci0000:00/0000:00:02.0/0000:05:00.0/host1/fc_host/host1"
+    node_name           = "0x51402ec000553b91"
+    port_name           = "0x51402ec000553b90"
+    port_state          = "Online"  					### Обрати внимание, если указан Inactive, нужно лезть в dmesg
+    symbolic_name       = "HPAJ764A FW:v7.03.00 DVR:v8.07.00.18.07.2-k"
+
+## У меня в первый раз в dmesg выдавалась ошибка:
+[140942.828973] qla2xxx [0000:05:00.0]-706d:1: Unable to read SFP data (102/a0/0).
+[140942.829983] qla2xxx [0000:05:00.1]-706d:2: Unable to read SFP data (102/a0/0).
+## Решение, извлек sfp модуль и переставил в другую сетевую карту.
+## После чего в dmesg получаем следующие
+[145145.718541] qla2xxx [0000:05:00.1]-500a:2: LOOP UP detected (8 Gbps).
+[145145.723037] scsi 2:0:0:0: Direct-Access     DGC      LUNZ             3105 PQ: 0 ANSI: 4
+[145145.724148] sd 2:0:0:0: Attached scsi generic sg2 type 0
+[145145.725261] sd 2:0:0:0: [sdb] Read Capacity(10) failed: Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+[145145.725268] sd 2:0:0:0: [sdb] Sense Key : Illegal Request [current] 
+[145145.725273] sd 2:0:0:0: [sdb] Add. Sense: Logical unit not supported
+[145145.725548] sd 2:0:0:0: [sdb] Test WP failed, assume Write Enabled
+[145145.725617] sd 2:0:0:0: [sdb] Asking for cache data failed
+[145145.725704] sd 2:0:0:0: [sdb] Assuming drive cache: write through
+[145145.727185] sd 2:0:0:0: [sdb] Read Capacity(10) failed: Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+[145145.727193] sd 2:0:0:0: [sdb] Sense Key : Illegal Request [current] 
+[145145.727197] sd 2:0:0:0: [sdb] Add. Sense: Logical unit not supported
+[145145.727680] sd 2:0:0:0: [sdb] Attached SCSI disk
+[145151.497707] qla2xxx [0000:05:00.0]-500a:1: LOOP UP detected (8 Gbps).
+[145151.502147] scsi 1:0:0:0: Direct-Access     DGC      LUNZ             3105 PQ: 0 ANSI: 4
+[145151.502997] sd 1:0:0:0: Attached scsi generic sg3 type 0
+[145151.503463] sd 1:0:0:0: [sdc] Read Capacity(10) failed: Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+[145151.503469] sd 1:0:0:0: [sdc] Sense Key : Illegal Request [current] 
+[145151.503474] sd 1:0:0:0: [sdc] Add. Sense: Logical unit not supported
+[145151.503681] sd 1:0:0:0: [sdc] Test WP failed, assume Write Enabled
+[145151.503748] sd 1:0:0:0: [sdc] Asking for cache data failed
+[145151.503796] sd 1:0:0:0: [sdc] Assuming drive cache: write through
+[145151.504832] sd 1:0:0:0: [sdc] Read Capacity(10) failed: Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+[145151.504836] sd 1:0:0:0: [sdc] Sense Key : Illegal Request [current] 
+[145151.504840] sd 1:0:0:0: [sdc] Add. Sense: Logical unit not supported
+[145151.505214] sd 1:0:0:0: [sdc] Attached SCSI disk
+
+Далее можно воспользоваться статьей по настройке:
+http://www.itzgeek.com/how-tos/linux/centos-how-tos/configure-iscsi-target-initiator-on-centos-7-rhel7.html
+
+
+
+

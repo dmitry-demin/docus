@@ -1,0 +1,146 @@
+===================== START s1-pstar-spb ========================
+css      24262  0.0  0.0  58508  1244 ?        Ss   06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 84.204.96.68 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+css      24269  0.0  0.0  58508  1244 ?        Ss   06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 84.204.96.68 -port 27016 +clientport 27006 +exec csss02.cfg +sv_logsdir cssslogs/csss02logs +log on -pidfile csss02.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      24281  0.0  0.0  58508  1248 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 84.204.96.68 -port 27017 +clientport 27007 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+hl2      24303  0.0  0.0  58508  1248 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 84.204.96.68 -port 27018 +clientport 27008 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+css      24342  0.0  3.8 235004 79204 ?        Sl   06:01   0:02 ./srcds_linux -ip 84.204.96.68 -port 27016 +clientport 27006 +exec csss02.cfg +sv_logsdir cssslogs/csss02logs +log on -pidfile csss02.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+css      24368  0.0  3.8 235500 79096 ?        Sl   06:01   0:03 ./srcds_linux -ip 84.204.96.68 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      24373  0.0  3.6 225324 76060 ?        Sl   06:01   0:10 ./srcds_linux -ip 84.204.96.68 -port 27017 +clientport 27007 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+hl2      24375  0.0  3.6 225516 76052 ?        Sl   06:01   0:11 ./srcds_linux -ip 84.204.96.68 -port 27018 +clientport 27008 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+===================== END s1-pstar-spb ==========================
+===================== START s2-pstar-spb ========================
+===================== END s2-pstar-spb ==========================
+===================== START s3-pstar-spb ========================
+===================== END s3-pstar-spb ==========================
+===================== START s4-pstar-spb ========================
+===================== END s4-pstar-spb ==========================
+===================== START s1-szt-arkhangelsk ========================
+===================== END s1-szt-arkhangelsk ==========================
+===================== START s2-szt-arkhangelsk ========================
+hl2      11940  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 91.122.223.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 12 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+tf2      11991  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/tf2/orangebox/srcds_run -ip 91.122.223.227 -port 27017 +clientport 27007 +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf +exec tf2s01.cfg +map cp_dustbowl -nohltv
+hl2      12021  0.0  3.7 227512 76112 ?      Sl   06:01   0:02 ./srcds_linux -ip 91.122.223.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 12 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css      12030  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 91.122.223.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+css      12101  0.0  3.8 236432 78492 ?      Sl   06:01   0:04 ./srcds_linux -ip 91.122.223.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+tf2      12134  0.0  8.6 288568 178176 ?     Sl   06:01   0:10 ./srcds_linux -ip 91.122.223.227 -port 27017 +clientport 27007 +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf +exec tf2s01.cfg +map cp_dustbowl -nohltv
+===================== END s2-szt-arkhangelsk ==========================
+===================== START s3-szt-arkhangelsk ========================
+===================== END s3-szt-arkhangelsk ==========================
+===================== START s4-szt-arkhangelsk ========================
+===================== END s4-szt-arkhangelsk ==========================
+===================== START s5-szt-arkhangelsk ========================
+===================== END s5-szt-arkhangelsk ==========================
+===================== START s1-szt-koenig ========================
+===================== END s1-szt-koenig ==========================
+===================== START s2-szt-koenig ========================
+hl2       6405  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 78.36.207.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css       6406  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 78.36.207.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+tf2       6492  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/tf2/orangebox/srcds_run +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf -ip 78.36.207.227 -port 27017 +clientport 27007 +exec tf2s01.cfg +map cp_dustbowl -nohltv
+hl2       6534  0.0  3.7 227580 76144 ?      Sl   06:01   0:07 ./srcds_linux -ip 78.36.207.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css       6560  0.0  3.8 238056 79616 ?      Sl   06:01   0:20 ./srcds_linux -ip 78.36.207.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+tf2       6578  0.0  8.6 288568 178732 ?     Sl   06:01   0:27 ./srcds_linux +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf -ip 78.36.207.227 -port 27017 +clientport 27007 +exec tf2s01.cfg +map cp_dustbowl -nohltv
+===================== END s2-szt-koenig ==========================
+===================== START s3-szt-koenig ========================
+===================== END s3-szt-koenig ==========================
+===================== START s4-szt-koenig ========================
+===================== END s4-szt-koenig ==========================
+===================== START s1-szt-komi ========================
+===================== END s1-szt-komi ==========================
+===================== START s2-szt-komi ========================
+css      27427  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/orangebox/srcds_run -ip 78.36.105.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+css      27428  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 78.36.105.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      27467  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 78.36.105.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css      27507  0.0  4.9 250108 102000 ?     Sl   06:01   0:10 ./srcds_linux -ip 78.36.105.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+css      27546  0.0  3.8 238184 79672 ?      Sl   06:01   0:17 ./srcds_linux -ip 78.36.105.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      27583  0.0  3.7 227576 76132 ?      Sl   06:01   0:10 ./srcds_linux -ip 78.36.105.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+===================== END s2-szt-komi ==========================
+===================== START s3-szt-komi ========================
+===================== END s3-szt-komi ==========================
+===================== START s4-szt-komi ========================
+===================== END s4-szt-komi ==========================
+===================== START s1-szt-lenobl ========================
+===================== END s1-szt-lenobl ==========================
+===================== START s2-szt-lenobl ========================
+css      18352  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 78.36.73.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+css      18353  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/orangebox/srcds_run -ip 78.36.73.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+hl2      18379  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 78.36.73.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css      18448  0.0  4.9 249952 101616 ?     Sl   06:01   0:08 ./srcds_linux -ip 78.36.73.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+css      18468  0.0  3.8 237740 79392 ?      Sl   06:01   0:15 ./srcds_linux -ip 78.36.73.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      18522  0.0  3.7 227512 76144 ?      Sl   06:01   0:06 ./srcds_linux -ip 78.36.73.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+===================== END s2-szt-lenobl ==========================
+===================== START s3-szt-lenobl ========================
+===================== END s3-szt-lenobl ==========================
+===================== START s4-szt-lenobl ========================
+===================== END s4-szt-lenobl ==========================
+===================== START s3-szt-murmansk ========================
+===================== END s3-szt-murmansk ==========================
+===================== START s4-szt-murmansk ========================
+===================== END s4-szt-murmansk ==========================
+===================== START s5-szt-murmansk ========================
+===================== END s5-szt-murmansk ==========================
+===================== START s1-szt-nov ========================
+tf2        348  0.0  8.6 288564 178392 ?     Sl   06:01   0:14 ./srcds_linux +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf -ip 78.36.143.226 -port 27016 +clientport 27006 +exec tf2s01.cfg +map cp_dustbowl -nohltv
+tf2      32668  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/tf2/orangebox/srcds_run +sv_logsdir tf2logs/tf2s01logs +log on -tickrate 33 -secure -maxplayers 16 -game tf -ip 78.36.143.226 -port 27016 +clientport 27006 +exec tf2s01.cfg +map cp_dustbowl -nohltv
+===================== END s1-szt-nov ==========================
+===================== START s2-szt-nov ========================
+css      31503  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/css/srcds_run -ip 78.36.143.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+css      31504  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/css/orangebox/srcds_run -ip 78.36.143.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+hl2      31530  0.0  0.0 52932 1224 ?        S    06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 78.36.143.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css      31578  0.0  4.9 250000 101912 ?     Sl   06:01   0:04 ./srcds_linux -ip 78.36.143.227 -port 27017 +clientport 27007 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+css      31606  0.0  3.8 237424 79340 ?      Sl   06:01   0:20 ./srcds_linux -ip 78.36.143.227 -port 27015 +clientport 27005 +exec csss01.cfg +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 16 -game cstrike +map de_dust2 -nohltv
+hl2      31664  0.0  3.7 227432 76116 ?      Sl   06:01   0:04 ./srcds_linux -ip 78.36.143.227 -port 27016 +clientport 27006 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+===================== END s2-szt-nov ==========================
+===================== START s3-szt-nov ========================
+===================== END s3-szt-nov ==========================
+===================== START s4-szt-nov ========================
+===================== END s4-szt-nov ==========================
+===================== START s1-szt-spb ========================
+css      30168  0.0  0.0  58520  1248 ?        Ss   06:01   0:00 /bin/sh /servers/css/orangebox/srcds_run -ip 212.48.193.2 -port 27017 +clientport 27009 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+hl2      30175  0.0  0.0  58520  1244 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 212.48.193.2 -port 27016 +clientport 27011 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+hl2      30189  0.0  0.0  58516  1244 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 212.48.193.2 -port 27015 +clientport 27010 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+css      30227  0.0  4.9 245880 101628 ?       Sl   06:01   0:03 ./srcds_linux -ip 212.48.193.2 -port 27017 +clientport 27009 +sv_logsdir dodslogs/dods1logs +log on -pidfile dods1.pid -secure -maxplayers 16 -game dod +exec dods1.cfg +map dod_kalt -nohltv
+hl2      30266  0.0  3.6 225368 75912 ?        Sl   06:01   0:04 ./srcds_linux -ip 212.48.193.2 -port 27016 +clientport 27011 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+hl2      30281  0.0  3.6 223308 75908 ?        Sl   06:01   0:02 ./srcds_linux -ip 212.48.193.2 -port 27015 +clientport 27010 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+===================== END s1-szt-spb ==========================
+===================== START s2-szt-spb ========================
+===================== END s2-szt-spb ==========================
+===================== START s3-szt-spb ========================
+===================== END s3-szt-spb ==========================
+===================== START s4-szt-spb ========================
+===================== END s4-szt-spb ==========================
+===================== START s5-szt-spb ========================
+===================== END s5-szt-spb ==========================
+===================== START s6-szt-spb ========================
+===================== END s6-szt-spb ==========================
+===================== START s7-szt-spb ========================
+===================== END s7-szt-spb ==========================
+===================== START s9-szt-spb ========================
+===================== END s9-szt-spb ==========================
+===================== START s10-szt-spb ========================
+===================== END s10-szt-spb ==========================
+===================== START s1-tkt-spb ========================
+qw        5079  0.0  2.1  59312 43692 ?        Ss   Apr13  24:46 ./mvdsv -ip 87.237.112.11 -port 27502 -d -mem 32 +gamedir ktx +map dm6 +exec name27502.cfg
+qw        5078  0.0  2.1  59312 44468 ?        Ss   Apr13  76:11 ./mvdsv -ip 87.237.112.11 -port 27501 -d -mem 32 +gamedir ktx +map dm6 +exec name27501.cfg
+css       6736  0.0  0.0  58516  1256 ?        Ss   06:01   0:00 /bin/sh /servers/css/s4/css/srcds_run -ip 87.237.112.11 -port 27018 +clientport 27008 +exec csss04.cfg -tickrate 100 -pingboost 1 +sv_logsdir cssslogs/csss04logs +log on -pidfile csss04.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6737  0.0  0.0  58512  1252 ?        Ss   06:01   0:00 /bin/sh /servers/css/s5/css/srcds_run -ip 87.237.112.11 -port 27019 +clientport 27009 +exec csss05.cfg -tickrate 66 +sv_logsdir cssslogs/csss05logs +log on -pidfile csss05.pid -secure -maxplayers 17 -game cstrike +map aim_deagle_arena -nohltv
+css       6742  0.0  0.0  58516  1256 ?        Ss   06:01   0:00 /bin/sh /servers/css/multiple/css/srcds_run -ip 87.237.112.11 -port 27016 +clientport 27006 +exec csss02.cfg -tickrate 33 +sv_logsdir cssslogs/csss02logs +log on -pidfile csss02.pid -secure -maxplayers 13 -game cstrike +map de_dust2 -nohltv
+css       6744  0.0  0.0  58516  1256 ?        Ss   06:01   0:00 /bin/sh /servers/css/multiple/css/srcds_run -ip 87.237.112.11 -port 27015 +clientport 27005 +exec csss01.cfg -tickrate 66 +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6757  0.0  0.0  58512  1252 ?        Ss   06:01   0:00 /bin/sh /servers/css/s4/css/srcds_run -ip 87.237.112.11 -port 27017 +clientport 27007 +exec csss03.cfg -tickrate 66 +sv_logsdir cssslogs/csss03logs +log on -pidfile csss03.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6855  0.0  4.0 238512 82320 ?        Sl   06:01   0:10 ./srcds_linux -ip 87.237.112.11 -port 27017 +clientport 27007 +exec csss03.cfg -tickrate 66 +sv_logsdir cssslogs/csss03logs +log on -pidfile csss03.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6856  0.0  4.0 237424 82364 ?        Sl   06:01   0:15 ./srcds_linux -ip 87.237.112.11 -port 27018 +clientport 27008 +exec csss04.cfg -tickrate 100 -pingboost 1 +sv_logsdir cssslogs/csss04logs +log on -pidfile csss04.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6860  0.0  3.8 235160 79936 ?        Sl   06:01   0:10 ./srcds_linux -ip 87.237.112.11 -port 27015 +clientport 27005 +exec csss01.cfg -tickrate 66 +sv_logsdir cssslogs/csss01logs +log on -pidfile csss01.pid -secure -maxplayers 17 -game cstrike +map de_dust2 -nohltv
+css       6861  0.0  3.1 226872 64884 ?        Sl   06:01   0:11 ./srcds_linux -ip 87.237.112.11 -port 27019 +clientport 27009 +exec csss05.cfg -tickrate 66 +sv_logsdir cssslogs/csss05logs +log on -pidfile csss05.pid -secure -maxplayers 17 -game cstrike +map aim_deagle_arena -nohltv
+css       6867  0.0  3.8 235160 79888 ?        Sl   06:01   0:10 ./srcds_linux -ip 87.237.112.11 -port 27016 +clientport 27006 +exec csss02.cfg -tickrate 33 +sv_logsdir cssslogs/csss02logs +log on -pidfile csss02.pid -secure -maxplayers 13 -game cstrike +map de_dust2 -nohltv
+===================== END s1-tkt-spb ==========================
+===================== START s2-tkt-spb ========================
+hl2      25779  0.0  0.0  58516  1252 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 87.237.112.12 -port 27022 +clientport 27012 +sv_logsdir hl2logs/hl2s3logs +log on -pidfile hl2s3.pid -secure -maxplayers 16 -game hl2mp +exec hl2s3.cfg +map dm_lockdown -nohltv
+hl2      25780  0.0  0.0  58516  1256 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 87.237.112.12 -port 27021 +clientport 27011 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+hl2      25792  0.0  0.0  58516  1256 ?        Ss   06:01   0:00 /bin/sh /servers/hl2/orangebox/srcds_run -ip 87.237.112.12 -port 27020 +clientport 27010 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+hl2      25882  0.0  3.7 224508 76076 ?        Sl   06:01   0:08 ./srcds_linux -ip 87.237.112.12 -port 27020 +clientport 27010 +sv_logsdir hl2logs/hl2s1logs +log on -pidfile hl2s1.pid -secure -maxplayers 16 -game hl2mp +exec hl2s1.cfg +map dm_lockdown -nohltv
+hl2      25906  0.0  3.7 224432 76076 ?        Sl   06:01   0:07 ./srcds_linux -ip 87.237.112.12 -port 27022 +clientport 27012 +sv_logsdir hl2logs/hl2s3logs +log on -pidfile hl2s3.pid -secure -maxplayers 16 -game hl2mp +exec hl2s3.cfg +map dm_lockdown -nohltv
+hl2      25917  0.0  3.6 224432 76060 ?        Sl   06:01   0:09 ./srcds_linux -ip 87.237.112.12 -port 27021 +clientport 27011 +sv_logsdir hl2logs/hl2s2logs +log on -pidfile hl2s2.pid -secure -maxplayers 16 -game hl2mp +exec hl2s2.cfg +map dm_lockdown -nohltv
+===================== END s2-tkt-spb ==========================
+===================== START s3-tkt-spb ========================
+===================== END s3-tkt-spb ==========================
+===================== START s4-tkt-spb ========================
+===================== END s4-tkt-spb ==========================

@@ -1,0 +1,39 @@
+Беру с конфигурационного файла, требовалось, ограничить права достпу двум учетным записям:
+useradd -s /bin/false -d /var/lib/vlir -m vlir
+useradd -s /bin/false -d /var/lib/vlir -m vlirw
+
+setfacl -R -d -m u:vlirw:rwx /var/lib/vlirw
+setfacl -R -d -m u:vlir:rx /var/lib/vlir
+
+ftpasswd --passwd --file=/etc/ftpd.passwd --name="vlir" --uid=99 --gid=99 --home="/var/lib/vlir/" --shell=/bin/false
+ftpasswd --passwd --file=/etc/ftpd.passwd --name="vlirw" --uid=99 --gid=99 --home="/var/lib/vlir/" --shell=/bin/false
+
+В файле proftpd.conf
+
+User                    nobody
+Group                   nobody
+
+
+<Limit LOGIN>
+AllowUser vlirw
+AllowUser vlir
+DenyALL
+</Limit>
+
+<Directory> /var/lib/vlir/>
+Umask 022 022
+AllowOverwrite on
+        <Limit READ RMD CWD>
+        AllowUser vlirw
+        AllowUser vlir
+        </Limit>
+        <Limit DELE MKD STOR XMKD RNRF RNTO RMD XRMD>
+        AllowUser vlirw
+        DenyAll
+        </Limit>
+</Directory>
+
+Получаем на выходе:
+  - vlirw имеет доступ на запись и чтение;
+  - vlir имеет доступ только на чтение.
+

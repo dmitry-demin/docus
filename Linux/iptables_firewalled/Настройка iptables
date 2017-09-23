@@ -1,0 +1,163 @@
+Настройка iptables
+
+
+#!/bin/bash
+
+IPTABLES="/sbin/iptables"
+POLICY="DROP"           # политика по умолчанию (ACCEPT/DROP)
+
+#######################################################################################################
+# Настройки интерфейсов ----- Interfaces Settings
+#######################################################################################################
+
+WAN1_IF="ppp0"          # внешний интерфейс
+
+LAN="192.168.0.0/24"    # внутренняя сеть
+LAN1_IF="eth0"          # внутренний интерфейс
+LAN1_IP="192.168.0.1"   # адрес на внутреннем интерфейсе
+
+LO_IF="lo"              # loopback-интерфейс
+LO_IP="127.0.0.1"       # loopback-адрес
+LOOPBACK="127.0.0.0/8"  # loopback-петля
+
+PROXY_PORT="8080"       # порт прокси сервера
+
+DNS1="213.158.0.3"      # DNS-провайдера
+DNS2="213.158.0.6"
+
+/bin/echo 1 > /proc/sys/net/ipv4/ip_forward     #ядро должно знать что оно может продвигать пакеты
+/bin/echo 1 > /proc/sys/net/ipv4/ip_dynaddr
+
+
+#######################################################################################################
+# Созданеи цепочек фильтрации пакетов
+#######################################################################################################
+
+#default_settings
+#Сброс и устновка правил по умолчанию
+        $IPTABLES -F
+        $IPTABLES -X
+        $IPTABLES -t nat -F
+        $IPTABLES -t mangle -F
+
+        $IPTABLES -P INPUT $POLICY
+        $IPTABLES -P FORWARD $POLICY
+        $IPTABLES -P OUTPUT $POLICY
+
+
+#common-check
+#Базовая проверка пакетов
+        $IPTABLES -N common-check
+        $IPTABLES -F common-check
+
+        # Отбрасываем невалидные пакты
+        $IPTABLES -A common-check -m state --state INVALID -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags SYN,ACK SYN,ACK -m state --state NEW -j REJECT --reject-with tcp-reset
+        $IPTABLES -A common-check -p tcp ! --syn -m state --state NEW -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags ALL FIN,URG,PSH -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags ALL ALL -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags ALL NONE -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+        $IPTABLES -A common-check -p tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
+
+
+#ssh-in
+#Правила для входящего ssh
+        $IPTABLES -N ssh-in
+        $IPTABLES -F ssh-in
+
+        $IPTABLES -A ssh-in -p tcp --dport 22 -j ACCEPT
+
+        $IPTABLES -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL RST --dport ssh -j ACCEPT
+        $IPTABLES -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL FIN --dport ssh -j ACCEPT
+        $IPTABLES -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL SYN --dport ssh -j ACCEPT
+
+        $IPTABLES -A ssh-in -m state --state RELATED,ESTABLISHED -p tcp --dport ssh -j ACCEPT
+
+
+#lan-in
+#Правила для входящего трафика с внутренней сети
+        $IPTABLES -N lan-in
+        $IPTABLES -F lan-in
+
+        $IPTABLES -A lan-in -j ACCEPT # можно всё :)
+
+
+#icmp_in
+#Входящие icmp запросы (пинг etc)
+        $IPTABLES -N icmp_in
+        $IPTABLES -F icmp_in
+
+        $IPTABLES -A icmp_in -m state --state NEW -p icmp --icmp-type echo-request -j ACCEPT
+        $IPTABLES -A icmp_in -m state --state NEW -p icmp --icmp-type time-exceeded -j ACCEPT
+        $IPTABLES -A icmp_in -m state --state NEW -p icmp --icmp-type destination-unreachable -j ACCEPT
+
+
+#icmp-out
+#Исходящие icmp запросы (пинг etc)
+        $IPTABLES -N icmp-out
+        $IPTABLES -F icmp-out
+
+        # Разрешаем icmp-reply во все сети в ответ на icmp-request'ы с сетей
+        $IPTABLES -A icmp-out -p icmp --icmp-type 8 -j ACCEPT
+        $IPTABLES -A icmp-out -m state --state NEW -p icmp --icmp-type time-exceeded -j ACCEPT
+        $IPTABLES -A icmp-out -m state --state NEW -p icmp --icmp-type destination-unreachable -j ACCEPT
+
+
+#statefull
+#Разрешает пакеты с уже установленный соединений
+        $IPTABLES -N statefull
+        $IPTABLES -F statefull
+
+        $IPTABLES -A statefull -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+
+#######################################################################################################
+# Распределение пакетов по цепочкам
+#######################################################################################################
+
+#input
+#Задание правил для входящего траффика
+        # Проверяем пакеты.
+        $IPTABLES -A INPUT -j common-check
+        # Переправляем входящие по SSH
+        $IPTABLES -A INPUT -p tcp --dport 22 -j ssh-in
+        # Переправляем входящие соединения с локалки
+        $IPTABLES -A INPUT -s $LAN -j lan-in
+        # Переправляем входящие по icmp
+        $IPTABLES -A INPUT -p icmp -j icmp_in
+        # Переправляем входящие на петлю, при его включении заметно улучшение отклика при ssh-авторизации
+        $IPTABLES -A INPUT -i $LO_IF -d $LOOPBACK -j ACCEPT
+        # Ну, и разрешаем statefull-пекеты.
+        $IPTABLES -A INPUT -j statefull
+
+#output
+#Задание правил для исходящего траффика
+        $IPTABLES -A OUTPUT -j common-check
+        $IPTABLES -A OUTPUT -s $LAN -j ACCEPT
+        $IPTABLES -A OUTPUT -p icmp -j icmp-out
+        $IPTABLES -A OUTPUT -o $LO_IF -j ACCEPT
+        $IPTABLES -A OUTPUT -o $WAN1_IF -j ACCEPT
+        $IPTABLES -A OUTPUT -j statefull
+
+#forward
+#Задание правил для сквазного траффика, нужно когда ваща машина распределяет инет по внутренней сети
+        # Отбрасываем плохие пакеты
+        $IPTABLES -A FORWARD -j common-check
+        # Разрешаем весь исходящий трафик с локалки
+        $IPTABLES -A FORWARD -s $LAN -j ACCEPT
+        # Разрешаем входящие пакеты, являющиеся частью установленного соединения
+        $IPTABLES -A FORWARD -j statefull
+        #prerouting
+        $IPTABLES -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port $PROXY_PORT
+        #postrouting
+        $IPTABLES -t nat -A POSTROUTING -o $WAN1_IF -j MASQUERADE
+        
+        
+        
+Настройка forwarding 
+nano -w /etc/sysctl.conf 
+net.ipv4.ip_forward = 1
+net.ipv4.ip_dynaddr = 1
+sysctl -p /etc/sysctl.conf

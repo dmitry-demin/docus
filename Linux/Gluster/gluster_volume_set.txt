@@ -1,0 +1,33 @@
+gluster volume set web performance.write-behind-window-size 16MB
+gluster volume set web performance.io-cache on
+gluster volume set web performance.write-behind on
+gluster volume set web performance.flush-behind on
+gluster volume set web performance.cache-size 10GB
+gluster volume set web performance.cache-min-file-size 0
+gluster volume set web performance.cache-refresh-timeout 60
+gluster volume set web performance.cache-max-file-size 256MB
+gluster volume set web performance.io-thread-count 32
+gluster volume set web nfs.disable off
+gluster volume set web performance.readdir-ahead on
+gluster volume set web diagnostics.latency-measurement off
+gluster volume set web diagnostics.count-fop-hits off
+gluster volume set web diagnostics.brick-log-level NONE
+gluster volume set web diagnostics.client-log-level NONE
+gluster volume set web features.cache-invalidation on
+gluster volume set web features.cache-invalidation-timeout 600
+gluster volume set web performance.stat-prefetch on
+gluster volume set web performance.cache-invalidation on
+gluster volume set web performance.md-cache-timeout 60
+gluster volume set web network.inode-lru-limit 90000
+gluster volume set web features.trash off
+
+
+
+
+
+
+gluster volume set web transport.address-family inet
+gluster volume set web performance.cache-samba-metadata on
+gluster volume set web cluster.enable-shared-storage enable
+gluster volume set web performance.cache-invalidation on
+

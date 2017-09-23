@@ -1,0 +1,13 @@
+cfdisk /dev/vdb
+type 8e
+
+pvcreate /dev/vdb1
+vgextend VolGroup00 /dev/vdb1
+lvextend /dev/VolGroup00/LogVol00 /dev/vdb1 (весь диск)
+xfs_growfs /dev/mapper/LogVol00
+
+
+
+Расширение жесткого диска.
+lvextend -L +300G /dev/mapper/vmstor-images -r
+xfs_growfs /dev/mapper/vmstor-images

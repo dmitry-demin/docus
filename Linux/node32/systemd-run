@@ -1,0 +1,23 @@
+[Unit]
+Description=ESET NOD32 Antivirus
+After=syslog.target network.target
+
+[Service]
+ExecStart=/opt/eset/esets/sbin/esets_daemon
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+PIDFile=/var/run/esets_daemon.pid
+Restart=always
+Type=forking
+StandardOutput=syslog+console
+StandardError=syslog+console
+Restart=on-abort
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target 
+
+
+Обновляем демона
+systemctl daemon-reload 
+

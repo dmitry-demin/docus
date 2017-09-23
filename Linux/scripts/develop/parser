@@ -1,0 +1,43 @@
+# usage: parse $inifile $section $key
+# return 0 on success, 1 if file cannot be opened, 2 if the given key cannot be found in the given section
+function parse()
+{
+  local _inifile=$1
+  local _section=$2
+  local _key=$3
+
+   if [ ! -r "$_inifile" ]
+   then
+     exit 1;
+   fi        
+
+   exec < $_inifile
+
+   while read section; do
+     if [ "$section" = '['$_section']' ] ; then
+       IFS='='
+       while read key value; do
+         # check if we are still within our section
+         if [ `echo -n $key | grep "^\s*\[.*\]\s*$"` ]; then
+            exit 2;
+         fi
+         # strip leading and trailing whitespace from keys
+         key=`echo -n "$key" | sed 's/^\s*//;s/\s*$//'`
+         _key=`echo -n "$_key" | sed 's/^\s*//;s/\s*$//'`
+         if [ $key = $_key ]; then
+           echo $value
+           exit 0;
+         fi
+      done
+    fi
+  done
+  exit 2;
+}
+
+val=`parse ./file.ini Section2 Key2`
+err=$?
+if [ $err != 0 ]
+  then
+     echo "Error: $err"
+  fi
+echo $val

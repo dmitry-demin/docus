@@ -1,0 +1,129 @@
+  1) Установка портажей которые нужны всегда и везде:
+
+Боевой сервер: 
+emerge -av app-admin/sudo app-misc/screen app-portage/layman \
+net-analyzer/traceroute net-dns/openresolv net-fs/nfs-utils \
+net-misc/ntp net-misc/whois sys-apps/dmidecode sys-apps/ipmitool \
+sys-power/acpid sys-process/atop www-client/links \
+net-dns/bind-tools net-dialup/minicom terminus-font bash-completion sys-apps/ethtool \
+sys-apps/pciutils sys-apps/usbutils
+
+rc-update add acpid boot
+eselect bashcomp enable --global gentoo
+
+  2)Настройка сети: 
+nano -w /etc/conf.d/net
+
+modules="iproute2"
+
+dns_domain_lo="agropribor.com"
+dns_search_lo="agropribor.com"
+
+###World Area Network
+config_enp0s25="94.228.254.119/255.255.255.0"
+routes_enp0s25="default via 94.228.254.1"
+dns_servers_enp0s25="194.149.234.1 194.149.234.2 8.8.8.8"
+
+###Local Area Network
+
+#vlans_enp1s0="2 3 4 5"
+vlans_br0="2 3 4 5"
+config_enp1s0="null"
+
+vlan2_name="vlan2"
+vlan3_name="vlan3"
+vlan4_name="vlan4"
+vlan5_name="vlan5"
+
+config_vlan2="10.0.12.1/24 10.0.12.200/24"
+config_vlan3="10.10.8.1/24"
+config_vlan4="10.10.9.1/24"
+config_vlan5="10.10.10.1/24"
+
+vlan_start_br0="yes"
+rc_net_vlan2_need="net.br0"
+rc_net_vlan3_need="net.br0"
+rc_net_vlan4_need="net.br0"
+rc_net_vlan5_need="net.br0"
+
+###Bridge
+bridge_br0="enp1s0"
+config_br0="10.10.8.254/24"
+brctl_br0="setfd 0
+sethello 10
+stp off"
+rc_net_br0_need="net.enp1s0"
+
+  LS -SF сетевые карты:
+/etc/init.d/net.br0 -> /etc/init.d/net.lo
+/etc/init.d/net.enp0s25 -> /etc/init.d/net.lo
+/etc/init.d/net.enp1s0 -> /etc/init.d/net.lo
+/etc/init.d/net.lo  
+/etc/init.d/net.vlan2 -> net.lo
+/etc/init.d/net.vlan3 -> net.lo
+/etc/init.d/net.vlan4 -> net.lo
+/etc/init.d/net.vlan5 -> net.lo
+
+rc-update add net.br0 default \\\и т.д.
+
+
+  3) Настройка времени:
+nano -w /etc/conf.d/hwclock
+clock="local"
+clock_systohc="YES"
+clock_args=""
+
+hwclock -w
+  
+  4) Установка libvirt qemu kvm 
+echo "app-emulation/libvirt lvm policykit sasl" > /etc/portage/package.use/libvirt
+echo "app-emulation/qemu nfs sasl ssh usb tls lzo" > /etc/portage/package.use/qemu
+
+emerge -aqv libvirt qemu virt-manager
+
+  5) Настройка Qemu kvm
+nano -w /etc/qemu/bridge.conf
+allow br0
+allow vnet0
+
+nano -w /etc/libvirt/qemu.conf
+vnc_listen = "10.10.8.254"
+vnc_tls = 0
+user = "root"
+group = "qemu"
+save_image_format = "gzip"
+dump_image_format = "gzip"
+auto_dump_path = "/var/lib/libvirt/qemu/dump"
+
+relaxed_acs_check = 1
+
+  6) Настройка libvirt
+nano -w /etc/libvirt/libvirtd.conf
+
+listen_tls = 0
+listen_tcp = 1
+unix_sock_group = "qemu"
+unix_sock_ro_perms = "0777"
+unix_sock_rw_perms = "0770"
+unix_sock_dir = "/var/run/libvirt"
+  
+  Подготовка жесткого диска для виртуалки
+
+  qemu-img create -f qcow2 -o preallocation=metadata /var/virtualization/win2k8.qcow2 200G
+
+  7) Устанавливаем Windows 2003 Server
+
+virt-install --os-type=windows --machine=pc --name garant_systema --vcpus 2 \
+--ram 2048 --disk path=/var/virtualization/garant_systema.qcow2,format=qcow2,bus=sata \
+--network=bridge:br0,model=virtio --hvm --virt-type=kvm --accelerate --graphics vnc,listen=0.0.0.0,port=5900,keymap=en-us \
+--noautoconsole --boot=cdrom,hd,menu=on --disk /var/old/ru_win_srv_2003_r2_enterprise_with_sp2_vl_cd1_X13-46484.iso,device=cdrom
+
+  8) Установка Windows 2008 Server
+  
+virt-install --connect qemu:///system --name WinServ1 --ram 4096 --vcpus 2 --disk path=/var/virtualization/win2k8.qcow2,format=qcow2,bus=virtio,cache=none \
+--disk /var/old/drv/ru_windows_server_2008_r2_standard_enterprise_datacenter_web_vl_build_x64_dvd_x15-59789.iso,device=cdrom --disk path=/var/old/drv/virtio-win-0.1-81.iso,device=cdrom --network=bridge:br0,model=virtio \
+--vnc --vncport=5900 --vnclisten=10.10.10.1 --os-type=windows --os-variant=win2k8 --noautoconsole --accelerate --noapic --keymap=en-us
+
+Если что-то пошло не так. Останавливаем virsh destroy WinServ1
+Удаляем конфиг virsh undefine WinServ1
+

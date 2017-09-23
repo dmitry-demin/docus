@@ -1,0 +1,30 @@
+#!/bin/bash -x
+
+base_dir='/usr/share/webapps/cacti/0.8.7i/htdocs/'
+work_dir='/var/www/cacti.test.dm/htdocs/cacti/'
+
+check_equery="equery check cacti"
+check_rsync="/usr/bin/rsync"
+
+log_pars="/tmp/log_event.txt"
+file_gr="grep "
+
+
+echo "==========================================Check Equery ============================="
+
+$check_equery 2>&1 > $log_pars
+
+
+echo "========================================== Check Rsync +============================="
+
+#/usr/bin/sudo $check_rsync --dry-run --delete-after -crpogv --out-format="%f %B %c %G %U %M [%i]" --exclude='*.rrd' --exclude='.webapp*' $base_dir $work_dir >> $log_pars
+
+
+
+
+#echo "Check log in attache" mutt -s “Cacti Log” demin@netville.ru < /tmp/log_event.txt
+
+#echo 'Check log in attache' | sendmail demin@netville.ru < $log_pars
+
+#rm -r $log_pars
+

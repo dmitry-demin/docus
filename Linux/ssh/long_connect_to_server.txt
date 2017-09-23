@@ -1,0 +1,31 @@
+Иногда бывает, что сервер ssh долго авторизируеца по сети, связано это с поиском dns имени сервера
+Исправить беду, можно и нужно:
+
+Port 22
+ListenAddress 0.0.0.0
+HostKey /etc/ssh/ssh_host_rsa_key
+SyslogFacility AUTHPRIV
+LogLevel Info
+# Разрешаем хождения root только по ключу
+PermitRootLogin without-password
+RSAAuthentication yes
+PubkeyAuthentication yes
+AuthorizedKeysFile      .ssh/authorized_keys
+# отключаем авторизацию по паролю
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+# Отключает авторизацию пользователя по паролю.
+UsePAM no
+X11Forwarding yes
+TCPKeepAlive yes
+UsePrivilegeSeparation sandbox          # Default for new installations.
+ClientAliveInterval 0
+ClientAliveCountMax 3
+# Данная опция говорит о поиске DNS, ставим правило в no и будет счатье
+UseDNS no
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+Subsystem       sftp    /usr/libexec/openssh/sftp-server

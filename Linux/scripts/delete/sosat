@@ -1,0 +1,20 @@
+Установленные права на cacti отличается от default webapp Установленная сумма md5 отличается от default webapp
+ 
+644 0 0 /test_cacti/1/342423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/1/342423432
+644 0 0 /test_cacti/3/3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/3/3213122423432
+644 0 0 /test_cacti/2/cd3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/2/cd3213122423432
+644 0 0 /test_cacti/4/weecd3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/4/weecd3213122423432
+644 0 0 /test_cacti/123123123123 d41d8cd98f00b204e9800998ecf8427e /test_cacti/123123123123
+600 0 0 /.webapp-cacti-0.8.7i e02fdf57de4e8c6f4a0ff6d82b2b660c /.webapp-cacti-0.8.7i
+664 81 81 /log/cacti.log 5277836f64a78569a77e9439043cb589 /.webapp
+600 0 0 /.webapp 
+Установленные права на cacti отличается от default webapp Установленная сумма md5 отличается от default webapp
+ 
+644 0 0 /test_cacti/1/342423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/1/342423432
+644 0 0 /test_cacti/3/3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/3/3213122423432
+644 0 0 /test_cacti/2/cd3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/2/cd3213122423432
+644 0 0 /test_cacti/4/weecd3213122423432 d41d8cd98f00b204e9800998ecf8427e /test_cacti/4/weecd3213122423432
+644 0 0 /test_cacti/123123123123 d41d8cd98f00b204e9800998ecf8427e /test_cacti/123123123123
+600 0 0 /.webapp-cacti-0.8.7i e02fdf57de4e8c6f4a0ff6d82b2b660c /.webapp-cacti-0.8.7i
+664 81 81 /log/cacti.log 5277836f64a78569a77e9439043cb589 /.webapp
+600 0 0 /.webapp 

@@ -1,0 +1,54 @@
+cat /var/lib/lxc/node32-demin/rootfs/etc/centos-release
+CentOS release 6.8 (Final)
+
+Для установки пакета Esed Node32, вначале требуется подготовить пакет для удаленной установки. 
+Для этого Вам потребуется, скачать файл с официального сайта http://download.eset.com/download/unix/eavbe/ueavbe.x86_64.ru.linux
+Далее, если Вы используете Linux о.с. требуется предоставить разрешение на выполнение данного файла:
+sudo chmod +x ueavbe.x86_64.ru.linux
+Далее в командной строку запускаем файл и следуя инструции подготавливаем пакет к удаленной установке. 
+После, того как Вами были произведенены работы должны появиться два файла: 
+lsb-esets.x86_64.linux
+lsb-esets.x86_64.rpm (после сборки rpm оказался битым)
+
+Данные файлы копируем средствами scp, rsync либо другими средствами в зависимости от локации сервера. 
+Проверяем, что все библиотеки у нас установленны. 
+
+cat /var/lib/lxc/kes/rootfs/etc/centos-release
+CentOS release 6.8 (Final)
+
+Назначаем права на выполнение chmod +x lsb-esets.x86_64.linux
+После немного правим настройки:
+
+[global]
+av_update_server = ""
+av_update_username = "EAV-0177355280"
+av_update_password = "r3ktdmtvkj"
+av_update_failsafe_server = ""
+av_update_failsafe_username = ""
+av_update_failsafe_password = ""
+proxy_addr = ""
+proxy_port = 3128
+proxy_username = ""
+proxy_password = ""
+racl_server_addr = ""
+bak_racl_server_addr = ""
+racl_server_port = 2222
+racl_password = ""
+bak_racl_password = ""
+racl_secure_enabled = yes
+racl_alt_server_addr = ""
+racl_alt_server_port = 2222
+racl_alt_password = ""
+bak_racl_alt_password = ""
+racl_alt_secure_enabled = yes
+racl_interval = 10
+privileged_users = "root"
+samples_enabled = no
+samples_send_files = "none"
+samples_send_stats = "none"
+samples_send_target = "eset"
+samples_exclude = "*.doc:*.rtf:*.xl?:*.dbf:*.mdb:*.sxw:*.sxc"
+user_mail = ""
+av_scan_app_unwanted = yes
+lang = "ru_RU.UTF-8"
+language = "ru"

@@ -1,0 +1,51 @@
+ 
+sda - SAS
+sdb - SSD
+ 
+pvcreate /dev/sda
+vgcreate vg_images /dev/sda
+lvcreate -n images -L1T vg_images
+
+wipefs -a /dev/sdb
+
+
+make-bcache -B /dev/mapper/vg_images-images -C /dev/sdb 
+
+UUID:                   68b746e0-9948-4065-b970-a3ae75048daf
+Set UUID:               4d123d0e-8709-4156-9cef-341579834ad1
+version:                0
+nbuckets:               953880
+block_size:             8
+bucket_size:            1024
+nr_in_set:              1
+nr_this_dev:            0
+first_bucket:           1
+UUID:                   0f16f721-761f-417f-81f4-735d123707c0
+Set UUID:               4d123d0e-8709-4156-9cef-341579834ad1
+version:                1
+block_size:             8
+data_offset:            16
+UUID:                   7b194034-26c2-4774-a88e-f8f21e55e8b8
+Set UUID:               4d123d0e-8709-4156-9cef-341579834ad1
+version:                1
+block_size:             8
+data_offset:            16
+
+
+cat /sys/block/bcache0/bcache/state
+clean
+
+bcache-super-show /dev/mapper/vg_images-images
+
+ls /sys/fs/bcache/
+4d123d0e-8709-4156-9cef-341579834ad1  register  register_quiet
+
+Включаем кэш на запись
+echo writeback > /sys/block/bcache0/bcache/
+
+mkfs.xfs /dev/bcache0
+mount /dev/bcache0 /var/lib/libvirt/images/
+
+Добавляем во fstab
+echo "/dev/bcache0            /var/lib/libvirt/images    xfs          defaults        0 0" >> /etc/fstab
+

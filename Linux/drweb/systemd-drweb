@@ -1,0 +1,22 @@
+SystemD Drweb
+
+[Unit]
+Description=Dr.Web Antivirus
+After=syslog.target network.target dkms_autoinstaller.service
+
+[Service]
+Type=forking
+ExecStart=/opt/drweb.com/bin/drweb-configd -d -p /var/run/drweb-configd.pid
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/var/run/drweb-configd.pid
+TimeoutStopSec=100
+TimeoutStartSec=60
+Environment=LC_ALL=C LANG=C
+
+[Install]
+WantedBy=multi-user.target
+
+
+Обновляем демона
+systemctl daemon-reload 
+

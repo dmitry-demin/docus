@@ -1,0 +1,348 @@
+Установка Kerberos squid samba
+
+Утановка и на стройка ntp севера для синхронизации kerberos с AD Windows 2012 Server
+
+apt-get install ntp
+
+> /etc/ntp.conf
+
+nano -w /etc/ntp.conf
+
+driftfile /var/lib/ntp/ntp.drift
+statistics loopstats peerstats clockstats
+filegen loopstats file loopstats type day enable
+filegen peerstats file peerstats type day enable
+filegen clockstats file clockstats type day enable
+server lub-dc1.lab.gemotest.ru 
+server sw-dc-03.lab.gemotest.ru
+server sw-dc-02.lab.gemotest.ru
+server srv-dc-dz.lab.gemotest.ru
+restrict -4 default kod notrap nomodify nopeer noquery
+restrict -6 default kod notrap nomodify nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+interface ignore wildcard
+interface listen eth0
+
+Устанавливаем Kerberos 
+
+apt-get install krb5-config krb5-kdc krb5-locales krb5-user libsasl2-modules-gssapi-mit krb5-doc libpam-krb5 ldap-utils
+
+Далее настраиваем /etc/krb5.conf
+> /etc/krb5.conf
+
+[logging]
+Default = FILE:/var/log/krb5libs.log
+Kdc = FILE:/var/log/krb5kdc.log
+admin_server = FILE:/var/log/kadmind.log
+
+[libdefaults]
+default_realm = LAB.GEMOTEST.RU
+clockskew = 300
+dns_lookup_realm = true
+dns_lookup_kdc = true
+ticket_lifetime = 1d
+default_tgs_enctypes = rc4-hmac
+default_tkt_enctypes = rc4-hmac
+forwardable = true
+proxiable = true
+;default_tkt_enctypes = aes256-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des-cbc-md5 arcfour-hmac-md5
+;default_tgs_enctypes = aes256-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des-cbc-md5 arcfour-hmac-md5
+;permitted_enctypes = aes256-cts-hmac-sha1-96 rc4-hmac des-cbc-crc des-cbc-md5 arcfour-hmac-md5
+;default_keytab_name = /etc/default/proxy.keytab
+
+[realms]
+LAB.GEMOTEST.RU = {
+kdc=SW-DC-02.LAB.GEMOTEST.RU
+kdc=SW-DC-03.LAB.GEMOTEST.RU
+kdc=LUB-DC1.LAB.GEMOTEST.RU
+admin_server = LUB-DC1.LAB.GEMOTEST.RU
+default_domain=LAB.GEMOTEST.RU
+}
+
+[domain_realm]
+lab.gemotest.ru = LAB.GEMOTEST.RU
+.lab.gemotest.ru = LAB.GEMOTEST.RU
+
+[kdc]
+Profile = /var/kerberos/krb5kdc/kdc.conf
+
+[appdefaults]
+Pam = {
+Debug = true
+ticket_lifetime = 1d
+renew_lifetime = 1d
+forwardable = true
+krb4_convert = true
+}
+
+Проверяем доступность kerberos 
+kinit dd_odmin
+Password for dd_odmin@LAB.GEMOTEST.RU: 
+
+Проверяем, что билет выдан.
+klist 
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: dd_odmin@LAB.GEMOTEST.RU
+
+Valid starting       Expires              Service principal
+11.11.2016 11:22:21  11.11.2016 21:22:21  krbtgt/LAB.GEMOTEST.RU@LAB.GEMOTEST.RU
+        renew until 12.11.2016 11:22:09
+
+Далее настраиваем учетную запись пользователя и компьютера для получения keytab ключей. 
+
+На контроллере домена прописываем в cmd с правами ADuser
+
+ktpass -princ HTTP/sl-slg-01.lab.gemotest.ru@LAB.GEMOTEST.RU -mapuser LAB\squid -pass Pa$$w0rd -crypto All -ptype KRB5_NT_PRINCIPAL -out \\192.168.16.25\files\squid.keytab
+
+где -princ учетная запись пользователя в домене
+где -mapuser таже учетка с паролем
+
+Проверяем что все работает
+kinit -k HTTP/sl-slg-01.lab.gemotest.ru
+kdestroy 
+kinit -V -k -t /etc/squid.keytab HTTP/sl-slg-01.lab.gemotest.ru
+
+klist
+
+Поиск keytab для squid
+
+sudo touch /etc/default/squid3
+sudo nano /etc/default/squid3
+
+KRB5_KTNAME=/etc/squid.keytab
+export KRB5_KTNAME
+
+Далее устанавливаем samba
+
+apt-get install samba winbind libpam-winbind libnss-winbind acl attr smbclient cifs-utils
+
+Далее в hosts, меняем ip
+root@sl-slg-01:~# cat /etc/hosts
+127.0.0.1       localhost
+#127.0.1.1      sl-slg-01.lab.gemotest.ru       sl-slg-01
+192.168.109.173 sl-slg-01.lab.gemotest.ru sl-slg-01
+
+Чистим настройки samba 
+> /etc/samba/smb.conf
+
+И добавляем следующие строчки:
+
+[global]
+netbios name = SL-SLG-01
+workgroup = LAB
+realm = LAB.GEMOTEST.RU
+server string = Proxy Server
+security = ADS
+map to guest = Bad User
+obey pam restrictions = Yes
+pam password change = Yes
+passwd program = /usr/bin/passwd %u
+passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+unix password sync = Yes
+syslog = 0
+log file = /var/log/samba/log.%m
+max log size = 1000
+os level = 0
+local master = No
+domain master = No
+dns proxy = No
+usershare allow guests = Yes
+panic action = /usr/share/samba/panic-action %d
+template shell = /bin/bash
+winbind enum users = Yes
+winbind enum groups = Yes
+winbind use default domain = Yes
+winbind refresh tickets = yes
+
+idmap config NT AUTHORITY : base_rid = 0
+idmap config NT AUTHORITY : range = 1200000-1299999
+idmap config NT AUTHORITY : backend = rid
+idmap config BUILTIN : base_rid = 0
+idmap config BUILTIN : range = 1000000-1099999
+idmap config BUILTIN : backend = rid
+idmap config LAB : base_rid = 100
+idmap config LAB : range = 100-999999
+idmap config LAB : backend = rid
+idmap config LAB : default = yes
+idmap config * : range = 1300000-1999999
+idmap config * : backend = rid
+
+        os level = 0
+        domain logons = no
+        use sendfile = yes
+        dns proxy = no
+        dont descend = /proc,/dev,/etc
+        deadtime = 15
+
+        unix extensions = no
+        wide links = yes
+        follow symlinks = yes
+
+        # Securtity settings
+        map to guest = Bad Password
+        #auth methods = guest, sam_ignoredomain
+        create mask = 0022
+        directory mask = 0775
+        hide dot files = yes
+
+        load printers = no
+        show add printer wizard = no
+        printcap name = /dev/null
+        disable spoolss = yes
+
+        #auth methods = winbind
+
+        vfs objects = acl_xattr
+        map acl inherit = Yes
+        store dos attributes = Yes
+
+
+####Test for wine
+auth methods =
+lanman auth = No
+ntlm auth = Yes
+client NTLMv2 auth = Yes
+client lanman auth = No
+client plaintext auth = No
+
+Проверяем настройки 
+testparm -s
+
+Перезапускаем samba
+/etc/init.d/samba restart
+
+Настраиваем winbind
+# /etc/nsswitch.conf
+passwd:        winbind compat 
+group:         winbind compat
+shadow:        winbind compat
+gshadow:        files
+
+hosts:          files dns
+networks:       files
+
+protocols:      db winbind files
+services:       db winbind files
+ethers:         db files
+rpc:            db files
+
+netgroup:       nis winbind
+
+Перезапускаем и проверяем winbindd
+/etc/init.d/winbind restart
+
+Проверяем, что все работает:
+wbinfo -u
+wbinfo -g
+wbinfo -t
+
+getend passwd
+getend group
+
+Если все показывает, значиться мы работаем в домене.
+
+Устанавливаем havp clamav
+
+apt-get install clamav havp apache2 clamdscan
+apt-get install libnet-ldap-perl liburi-encode-perl 
+
+
+ClamAv настраивать не нужно
+Настройки havp
+egrep -v '^$|^#' /etc/havp/havp.config
+ PORT 8085
+ BIND_ADDRESS 127.0.0.1
+ TEMPLATEPATH /etc/havp/templates/ru
+ENABLECLAMLIB true
+ENABLECLAMD false
+ENABLEFPROT false
+ENABLEAVG false
+ENABLEAVESERVER false
+ENABLESOPHIE false
+ENABLETROPHIE false
+ENABLENOD32 false
+ENABLEAVAST false
+ENABLEARCAVIR false
+ENABLEDRWEB false
+
+Далее устанавливаем squid (в данной статье не подключен модуль ssl)
+
+auth_param negotiate program /usr/lib/squid3/negotiate_kerberos_auth -s HTTP/sl-slg-01.lab.gemotest.ru@LAB.GEMOTEST.RU
+auth_param negotiate children 20 startup=0 idle=1
+auth_param negotiate keep_alive off
+auth_param basic program /usr/lib/squid3/basic_ldap_auth -b "dc=lab,dc=gemotest,dc=ru" -f "uid=%s" -c 2 -t 2 -h lub-dc1.lab.gemotest.ru SW-DC-03.LAB.GEMOTEST.RU SW-DC-02.LAB.GEMOTEST.RU
+auth_param basic children 10
+auth_param basic realm Internet Proxy
+auth_param basic credentialsttl 1 minute
+cache_peer 127.0.0.1 parent 8085 0 name=havp no-query no-digest no-netdb-exchange default 
+acl Scan_HTTP proto HTTP
+acl Scan_FTP proto FTP
+never_direct allow Scan_HTTP
+never_direct allow Scan_FTP
+cache_peer_access havp allow all
+acl SSL_ports port 443
+acl Safe_ports port 80          # http
+acl Safe_ports port 21          # ftp
+acl Safe_ports port 443         # https
+acl Safe_ports port 70          # gopher
+acl Safe_ports port 210         # wais
+acl Safe_ports port 1025-65535  # unregistered ports
+acl Safe_ports port 280         # http-mgmt
+acl Safe_ports port 488         # gss-http
+acl Safe_ports port 591         # filemaker
+acl Safe_ports port 777         # multiling http
+acl CONNECT method CONNECT
+acl localnet src 192.168.0.0/16
+acl auth proxy_auth REQUIRED
+http_access deny !Safe_ports
+http_access deny CONNECT !SSL_ports
+http_access allow localhost manager
+http_access deny manager
+http_access deny !auth
+http_access allow auth
+http_access deny all
+ftp_sanitycheck off
+http_port 3128 ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/etc/squid3/ssl/test.pem
+sslproxy_flags DONT_VERIFY_PEER  
+sslproxy_cert_error allow all  
+ssl_bump client-first all  
+ssl_bump server-first all  
+ssl_bump none all  
+sslcrtd_program /usr/lib/squid3/ssl_crtd -s /var/lib/ssl_db -M 4MB
+cache_mem 3000 MB
+cache_dir ufs /var/spool/squid3 2048 16 256
+maximum_object_size 4 MB
+minimum_object_size 0 KB
+request_body_max_size 0 KB 
+reply_body_max_size none all
+request_header_access X-Forwarded-For deny all
+request_header_access Via deny all
+httpd_suppress_version_string on
+cache_mgr itis@gemotest.ru
+access_log /var/log/squid3/access.log
+logfile_rotate 100
+coredump_dir /var/spool/squid3
+refresh_pattern ^ftp:           1440    20%     10080
+refresh_pattern ^gopher:        1440    0%      1440
+refresh_pattern -i (/cgi-bin/|\?) 0     0%      0
+refresh_pattern (Release|Packages(.gz)*)$      0       20%     2880
+refresh_pattern -i \.(gif|png|jpg|jpeg|ico)$    3600    90%     43200
+refresh_pattern .               0       20%     4320
+httpd_suppress_version_string on
+visible_hostname PROXYSERVER
+error_directory /usr/share/squid3/errors/Russian-1251
+error_default_language ru
+check_hostnames on
+dns_nameservers 192.168.108.3 192.168.108.53
+dns_v4_first on
+shutdown_lifetime 1 seconds
+icp_port 0
+append_domain .lab.gemotest.ru
+
+Нужно для работы
+ls -la /var/run/samba/winbindd_privileged
+sudo chgrp winbindd_priv /var/lib/samba/winbindd_privileged
+sudo ln -s /var/lib/samba/winbindd_privileged/pipe /var/run/samba/winbindd_privileged/pipe
+sudo gpasswd -a proxy winbindd_priv
+

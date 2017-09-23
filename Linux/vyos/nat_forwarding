@@ -1,0 +1,44 @@
+Если требуется удалить правило:
+configure
+delete nat destination rule 80
+commit
+save
+Если требуется создать правило:
+configure
+set nat destination rule 80 destination port '80'
+set nat destination rule 80 inbound-interface 'eth0'
+set nat destination rule 80 protocol 'tcp'
+set nat destination rule 80 translation address '192.168.0.52'
+set nat destination rule 80 translation port '80'
+
+set nat destination rule 122 destination address '192.168.122.1' 
+set nat destination rule 122 destination port '80'
+set nat destination rule 122 inbound-interface 'eth2'
+set nat destination rule 122 protocol 'tcp'
+set nat destination rule 122 translation address '192.168.0.52'
+set nat destination rule 122 translation port '80'
+
+commit
+save
+
+
+set nat destination rule 52 destination port '33891'
+set nat destination rule 52 inbound-interface 'eth2'
+set nat destination rule 52 protocol 'tcp'
+set nat destination rule 52 translation address '192.168.0.103'
+set nat destination rule 52 translation port '3389'
+
+
+
+
+
+
+
+
+delete system flow-accounting netflow timeout max-active-life 604800
+delete system flow-accounting netflow timeout flow-generic 3600
+delete system flow-accounting netflow timeout tcp-fin 300
+delete system flow-accounting netflow timeout tcp-generic 3600
+delete system flow-accounting netflow timeout tcp-rst 120
+delete system flow-accounting netflow timeout icmp 300
+delete system flow-accounting netflow timeout udp 300

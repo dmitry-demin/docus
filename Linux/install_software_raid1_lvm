@@ -1,0 +1,278 @@
+Установка gentoo software raid + lvm
+
+boot gentoo: gentoo-nofb
+
+ lspci -k | grep mod
+        Kernel modules: e1000e
+        Kernel modules: uhci_hcd
+        Kernel modules: uhci_hcd
+        Kernel modules: uhci_hcd
+        Kernel modules: uhci_hcd
+        Kernel modules: uhci_hcd
+        Kernel modules: uhci_hcd
+        Kernel modules: ahci
+        Kernel modules: e1000e
+
+1)Подгрузка моделей
+    modprobe raid1
+    modprobe dm-mod
+
+2) Разбивка жестких дисков
+    cfdisk /dev/sda
+
+3) Создание нодов
+mknod /dev/md1 b 9 1
+mknod /dev/md2 b 9 2
+
+4) Демаем копию второго диска
+sfdisk -d /dev/sda | sfdisk /dev/sdb
+
+5) Создадим разделы RAID
+    Создаем software raid зеркало
+    mdadm --create /dev/md1 --level=1 --raid-devices=2 --metadata=0.90 /dev/sda1 /dev/sdb1
+    mdadm --create /dev/md2 --level=1 --raid-devices=2 --metadata=0.90 /dev/sda2 /dev/sdb2
+
+      Ждем около 90 минут, наслаждаемся просотром построения raid массива:
+    watch cat /proc/mdstat
+
+      Получаем выхлоп:
+    mdadm --detail /dev/md1
+    mdadm --detail /dev/md2
+
+
+6) Создадим разделы LVM
+     pvcreate /dev/md2 
+        Writing physical volume data to disk "/dev/sda2"
+        Physical volume "/dev/md2" successfully created
+     vgcreate system_vg /dev/md2 
+        Volume group "system_vg" successfully created
+
+    Создать корневой раздел на LVM
+     lvcreate -L10G -nroot system_vg
+        Logical volume "root" created
+
+    Создать раздел swap на LVM
+     lvcreate -L14G -nswap system_vg
+        Logical volume "swap" created
+    
+    Создать раздел usr на LVM
+     lvcreate -L10G -nusr system_vg
+        Logical volume "usr" created
+
+    Создать раздел var на LVM
+     lvcreate -L20G -nvar system_vg
+        Logical volume "var" created
+
+7) Oтформатировать разделы
+    Boot
+     mkfs.ext2 /dev/md1
+
+    root
+     mkfs.ext4 /dev/system_vg/root
+
+    usr
+     mkfs.ext4 /dev/system_vg/usr
+
+    var
+     mkfs.ext4 /dev/system_vg/var
+
+    swap
+     mkswap /dev/system_vg/swap
+     swapon /dev/system_vg/swap
+     swapon -v -s
+
+8) Смонтировать файловые системы для установки
+    mount /dev/system_vg/root /mnt/gentoo
+     mkdir /mnt/gentoo/{boot,var,usr}
+    mount /dev/md1 /mnt/gentoo/boot
+    mount /dev/system_vg/var /mnt/gentoo/var
+    mount /dev/system_vg/usr /mnt/gentoo/usr
+
+9) Откорректировать дату (если необходимо. Это важно если часыф сильно убежали вперед)
+     date
+     date 033112202015
+
+10) Скачать и установить последний stage3
+     /mnt/gentoo
+     wget http://mirror.yandex.ru/gentoo-distfiles/releases/autobuilds/amd64/current-stage3-amd64/stage3-amd64-2015*.tar.bz2
+     tar xvjpf stage3-amd64-2015*.tar.bz2
+
+11) Установить portage
+     /mnt/gentoo
+     wget http://mirror.yandex.ru/gentoo-distfiles/snapshots/portage-latest.tar.bz2
+     tar xvjf /mnt/gentoo/portage-latest.tar.bz2 -C /mnt/gentoo/usr
+12) Настройка mirrorlist
+    sed -i 's/GENTOO_MIRRORS=\"http:\/\/distfiles.gentoo.org\"/GENTOO_MIRRORS=\"http:\/\/mirror.yandex.ru\/gentoo-distfiles\/\"/g' /mnt/gentoo/usr/share/portage/config/make.globals
+    sed -i 's/rsync:\/\/rsync.gentoo.org\/gentoo-portage/rsync:\/\/rsync2.ru.gentoo.org\/gentoo-portage/g' /mnt/gentoo/usr/share/portage/config/repos.conf
+
+13) Конфигурирование опций компиляции
+    nano -w /mnt/gentoo/etc/portage/make.conf
+    CFLAGS="-O2 -pipe -mtune=native"
+    CXXFLAGS="${CFLAGS}"
+    CHOST="x86_64-pc-linux-gnu"
+    MAKEOPTS="-j9"
+
+    USE="mmx sse sse2 static-libs bash-completion slang -perl udev unicode zip -ipv6 device-mapper"
+    
+    PORTDIR="/usr/portage"
+    DISTDIR="${PORTDIR}/distfiles"
+    PKGDIR="${PORTDIR}/packages"
+
+    QEMU_SOFTMMU_TARGETS="x86_64 i386 "
+    QEMU_USER_TARGETS="x86_64 i386"
+    GRUB_PLATFORMS="pc"
+
+14) Скопировать информацию о DNS
+     cp -L /etc/resolv.conf /mnt/gentoo/etc/
+
+15) Смонтировать proc и dev
+    mount -t proc none /mnt/gentoo/proc
+    mount --rbind /dev /mnt/gentoo/dev
+    mount --rbind /sys /mnt/gentoo/sys
+
+16) Лезим в систему:
+    chroot /mnt/gentoo /bin/bash
+    env-update && source /etc/profile
+
+    eselect profile list
+    eselect profile set 1
+
+    
+    nano -w /etc/hosts
+    127.0.0.1       sl2.agropribor.com sl2 localhost
+    
+    
+    hostname="server_name"
+
+    emerge --sync
+
+17) Проверяем gcc компилятор на поддержку CFLAGS, далее правим make.conf 
+
+    gcc -c -Q -march=native --help=target
+
+18) Сконфигурировать Timezone
+    
+    ln -sf /usr/share/zoneinfo/Europe/Moscow /etc/localtime
+    echo "Europe/Moscow" > /etc/timezone
+
+19) Установка ядра
+    
+    emerge -qav gentoo-sources genkernel gentoolkit mdadm lvm2
+    rc-update add mdraid boot
+
+20) Настройка mdadm.conf
+      Проводим манипуляции:
+    echo 'DEVICE /dev/sda1 /dev/sdb1 /dev/sda2 /dev/sdb2' > mdadm.conf
+    mdadm --examine --scan --config=mdadm.conf >> mdadm.conf
+
+      Получаем следующее:
+    nano -w /etc/mdadm.conf
+    DEVICE /dev/sda1 /dev/sdb1 /dev/sda2 /dev/sdb2
+    ARRAY /dev/md2 UUID=8b466a34:600b910e:cb201669:f728008a
+    ARRAY /dev/md1 UUID=bc814896:82208971:cb201669:f728008a
+
+      Проверим UIDы:
+    mdadm --examine /dev/sda1      
+
+21) Настройка genkernel
+    nano -w /etc/genkernel.conf
+
+		  livecd / # egrep -v '^#|^$' /etc/genkernel.conf 
+
+INSTALL="yes"
+OLDCONFIG="yes"
+MENUCONFIG="yes"
+CLEAN="yes"
+MRPROPER="yes"
+MOUNTBOOT="yes"
+SAVE_CONFIG="yes"
+USECOLOR="yes"
+MAKEOPTS="-j9"
+LVM="yes"
+LUKS="no"
+GPG="no"
+DMRAID="no"
+BUSYBOX="yes"
+MDADM="yes"
+MDADM_CONFIG="/etc/mdadm.conf"
+ISCSI="no"
+ZFS="no"
+DISKLABEL="yes"
+SPLASH="yes"
+SPLASH_THEME="gentoo"
+BOOTDIR="/boot"
+GK_SHARE="${GK_SHARE:-/usr/share/genkernel}"
+CACHE_DIR="/var/cache/genkernel"
+DISTDIR="${CACHE_DIR}/src"
+LOGFILE="/var/log/genkernel.log"
+LOGLEVEL=1
+DEFAULT_KERNEL_SOURCE="/usr/src/linux"
+
+
+
+22) Настройка fstab
+nano -w /etc/fstab
+
+/dev/md1                /boot           ext2            noauto,noatime  1 2
+/dev/md2                /               ext4            noatime         0 1
+/dev/system_vg/swap     none            swap            sw              0 0
+/dev/system_vg/var      /var            ext4            noatime         1 2
+/dev/system_vg/usr      /usr            ext4            noatime         1 2
+
+23) Настройка mtab
+
+grep -v rootfs /proc/mounts > /etc/mtab
+
+24) Утановка syslog-ng vixie-cron grub kmod
+
+echo "sys-apps/kmod lzma zlib" > /etc/portage/package.use/kmod
+emerge -q1av dhcpcd syslog-ng vixie-cron grub kmod
+rc-update add syslog-ng default
+rc-update add vixie-cron default
+
+25) Настройка grub
+
+nano -w /etc/default/grub
+GRUB_CMDLINE_LINUX="dolvm domdadm nodmraid rootfstype=ext4 vga=791 splash=silent,theme:gentoo console=tty1 quiet"
+
+grub2-install --no-floppy /dev/sda
+grub2-install --no-floppy /dev/sdb
+grub2-mkconfig -o /boot/grub/grub.cfg
+
+26) Обновляем полностью систему
+emerge -uDNqav --with-bdeps=y @world
+
+27) Загрузка по сети
+rc-update add sshd default
+
+
+
+
+
+Если что-то посшло не так:
+Livecd с gentoo-nofb
+
+mdadm --stop /dev/md127
+mdadm --stop /dev/md126
+mdadm --assemble /dev/md1 /dev/sda1 /dev/sdb1
+mdadm --assemble /dev/md2 /dev/sda2 /dev/sdb2
+vgscan
+vgchange -ay
+mount /dev/system_vg/root /mnt/gentoo/
+mount /dev/system_vg/usr /mnt/gentoo/usr/
+mount /dev/system_vg/var /mnt/gentoo/var/
+mount -t proc none /mnt/gentoo/proc 
+mount --rbind /dev/ /mnt/gentoo/dev/
+mount --rbind /sys /mnt/gentoo/sys/
+mount /dev/md1 /mnt/gentoo/boot/
+swapon /dev/system_vg/swap 
+chroot /mnt/gentoo/ /bin/bash
+grep -v rootfs /proc/mounts > /etc/mtab
+Пересобираем ядро с поддержкой mdadm и lvm внимательно смотрим lspci -k собираем все драйвера
+genkernel all
+
+Перезатираем весе сектора от старых названий
+grub2-install --recheck --no-floppy /dev/sda
+grub2-install --recheck --no-floppy /dev/sdb
+grub2-mkconfig -o /boot/grub/grub.cfg
+

@@ -1,0 +1,210 @@
+#!/bin/sh
+#
+#  Dr.Web drweb-configd init script
+#
+#  $Id: ca970bc4721d134c1eac6fd9ce70f7a1a8f889f6 $
+#
+# chkconfig: 235 20 80
+# description: drweb-configd is a Dr.Web Configuration Daemon
+# processname: drweb-configd
+# config: /etc/opt/drweb.com/drweb.ini
+# pidfile: /var/run/drweb-configd.pid
+### BEGIN INIT INFO
+# Provides: drweb-configd
+# Required-Start: $local_fs $network
+# Required-Stop: $null
+# Should-Start: dkms_autoinstaller
+# Should-Stop: $null
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Description: drweb-configd is a Dr.Web Configuration Daemon
+### END INIT INFO
+
+LC_ALL=C
+LANG=C
+export LC_ALL
+export LANG
+
+DAEMON=/opt/drweb.com/bin/drweb-configd
+PIDFILE=/var/run/drweb-configd.pid
+TIMEOUT=300
+
+PATH=/usr/xpg4/bin:/bin:/usr/bin:/usr/ucb:/sbin:/usr/sbin:${PATH}
+
+EXIT_SUCCESS=0
+EXIT_FAILURE_NOFILE=1
+EXIT_FAILURE_RUNNING=2
+EXIT_FAILURE_NOT_RUNNING=3
+EXIT_FAILURE_TIMEOUT=4
+EXIT_FAILURE_NOARGS=5
+EXIT_FAILURE_NOT_ROOT=6
+
+STATUS_NOPID=1
+STATUS_ALIVE=0
+STATUS_NOT_ALIVE=2
+STATUS_WRONG_PID=3
+
+if test -n "$1" -a ! "$1" = "status" ; then
+    case "`id`" in
+        uid=0*)
+        ;;
+        *)
+            echo "$0 $1 must be executed with root privileges"
+            exit $EXIT_FAILURE_NOT_ROOT
+        ;;
+    esac
+fi
+
+get_pid() {
+    head -1 "$PIDFILE" 2>/dev/null
+}
+
+check_pid() {
+    if test -r "$PIDFILE" ; then
+        pid=`get_pid`
+        if test -n "$pid" ; then
+            if kill -0 "$pid" 2>/dev/null || ps -p "$pid" >/dev/null 2>&1 ; then
+                return $STATUS_ALIVE
+            else
+                return $STATUS_NOT_ALIVE
+            fi
+        else
+            return $STATUS_WRONG_PID
+        fi
+    else
+        return $STATUS_NOPID
+    fi
+}
+
+start_daemon() {
+    if test ! -x "$DAEMON" ; then
+        echo "Dr.Web drweb-configd is not installed"
+        exit $EXIT_FAILURE_NOFILE
+    fi
+
+    if test $USE_SYSTEMCTL -eq 1; then
+        /bin/systemctl --job-mode=ignore-dependencies start drweb-configd.service
+        return $?
+    fi
+            "$DAEMON" -d -p "$PIDFILE" >/dev/null 2>&1
+    retval=$?
+        return $retval
+}
+
+stop_daemon() {
+    if test $USE_SYSTEMCTL -eq 1; then
+        /bin/systemctl --job-mode=ignore-dependencies stop drweb-configd.service
+        return $?
+    fi
+    pid=`get_pid`
+    if test -n "$pid" ; then
+        kill "$pid"
+    fi
+    seconds=0
+    retval=0
+    while check_pid ; do
+        sleep 1
+        printf "."
+        seconds=`expr $seconds + 1`
+        if test "$seconds" -gt "$TIMEOUT" ; then
+            retval=1
+            break
+        fi
+    done
+    test "$seconds" -gt "0" && echo
+    test $retval -eq 0 && rm -f "$PIDFILE"
+    return $retval
+}
+
+die() {
+    echo "$2" && exit $1
+}
+
+die_if_running() {
+    check_pid && die $EXIT_FAILURE_RUNNING "Dr.Web drweb-configd is already running"
+}
+
+check_if_not_running() {
+    check_pid
+    case "$?" in
+        $STATUS_NOPID) echo "Dr.Web drweb-configd is not running"
+                       exit $EXIT_SUCCESS
+                       ;;
+        $STATUS_NOT_ALIVE|$STATUS_WRONG_PID) die $EXIT_FAILURE_NOT_RUNNING \
+            "Dr.Web drweb-configd is not running but $PIDFILE exists" ;;
+    esac
+}
+
+die_if_timeout() {
+    die $EXIT_FAILURE_RUNNING "Dr.Web drweb-configd seems is still running"
+}
+
+die_if_cant_start() {
+    die $EXIT_FAILURE_NOT_RUNNING "Failed to start Dr.Web drweb-configd"
+}
+
+USE_SYSTEMCTL=0
+if cat /proc/1/comm 2>/dev/null | grep systemd 1>/dev/null 2>&1; then
+
+    state=$(/bin/systemctl -p LoadState show drweb-configd.service 2>/dev/null)
+
+    if test "$state" = "LoadState=not-found"; then
+        USE_SYSTEMCTL=0
+    elif test "$state" = "LoadState=masked"; then
+        die $EXIT_SUCCESS "Dr.Web drweb-configd is masked"
+    else
+        if test $PPID -ne 1 -a -z "${init:-}" -a -z "${SYSTEMCTL_REDIRECT:-}"; then
+            USE_SYSTEMCTL=1
+        else
+            export SYSTEMCTL_REDIRECT=1
+        fi
+    fi
+fi
+
+case "$1" in
+    stop)
+        echo "Shutting down Dr.Web drweb-configd..."
+        check_if_not_running
+        stop_daemon || die_if_timeout
+    ;;
+    reload)
+        echo "Reloading Dr.Web drweb-configd..."
+        check_if_not_running
+        pid=`get_pid`
+        if test -n "$pid" ; then
+            kill -HUP "$pid"
+        fi
+    ;;
+    restart)
+        echo "Restarting Dr.Web drweb-configd..."
+        if check_pid ; then
+            stop_daemon || die_if_timeout
+        fi
+        start_daemon || die_if_cant_start
+    ;;
+    condrestart)
+        echo "Restarting Dr.Web drweb-configd..."
+        check_if_not_running
+        stop_daemon || die_if_timeout
+        start_daemon || die_if_cant_start
+    ;;
+    start)
+        die_if_running
+        echo "Starting Dr.Web drweb-configd..."
+        start_daemon || die_if_cant_start
+    ;;
+    status)
+        check_pid
+        case "$?" in
+            $STATUS_ALIVE) echo "Dr.Web drweb-configd is running" ;;
+            $STATUS_NOPID) echo "Dr.Web drweb-configd is not running" ;;
+            $STATUS_NOT_ALIVE|$STATUS_WRONG_PID) echo "Dr.Web drweb-configd is not running but $PIDFILE exists" ;;
+        esac
+    ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|condrestart|reload|status}"
+        exit $EXIT_FAILURE_NOARGS
+    ;;
+esac
+
+exit $EXIT_SUCCESS 

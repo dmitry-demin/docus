@@ -1,0 +1,23 @@
+# Network configuration
+# 
+cat /etc/sysconfig/network-scripts/ifcfg-em4 
+TYPE="Ethernet"                                                                                                                                                                                                                              
+DEVICE="em4"                                                                                                                                                                                                                                 
+BOOTPROTO="none"                                                                                                                                                                                                                             
+ONBOOT="yes"                                                                                                                                                                                                                                 
+BRIDGE=br120 
+
+# Bridge configuration
+#
+cat /etc/sysconfig/network-scripts/ifcfg-br120 
+DEVICE="br120"
+TYPE="Bridge"
+BOOTPROTO=none
+ONBOOT="yes"
+#IPADDR=192.168.11.13
+#PREFIX=24
+#GATEWAY=192.168.11.1
+#DNS1=192.168.10.2
+#DNS2=8.8.8.8
+NM_CONTROLLED="no"
+

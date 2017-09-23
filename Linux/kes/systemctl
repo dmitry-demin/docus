@@ -1,0 +1,21 @@
+[Unit]
+Description=Kaspersky Endpoint Security 8 for Linux
+After=syslog.target network.target
+
+[Service]
+ExecStart=/opt/kaspersky/kes4lwks/sbin/kes4lwks-supervisor -c/etc/opt/kaspersky/kes4lwks-supervisor.conf -a/var/opt/kaspersky/apps/1415
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+Type=forking
+StandardOutput=syslog+console
+StandardError=syslog+console
+Restart=on-abort
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target 
+
+
+Обновляем демона
+systemctl daemon-reload 

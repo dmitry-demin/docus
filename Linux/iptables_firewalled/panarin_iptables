@@ -1,0 +1,168 @@
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t mangle -F
+
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+
+
+iptables -N common-check
+iptables -F common-check
+
+iptables -A common-check -m state --state INVALID -j DROP
+iptables -A common-check -p tcp --tcp-flags SYN,ACK SYN,ACK -m state --state NEW -j REJECT --reject-with tcp-reset
+iptables -A common-check -p tcp ! --syn -m state --state NEW -j DROP
+iptables -A common-check -p tcp --tcp-flags ALL FIN,URG,PSH -j DROP
+iptables -A common-check -p tcp --tcp-flags ALL ALL -j DROP
+iptables -A common-check -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -j DROP
+iptables -A common-check -p tcp --tcp-flags ALL NONE -j DROP
+iptables -A common-check -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+iptables -A common-check -p tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
+
+
+iptables -N ssh-in
+iptables -F ssh-in
+
+iptables -A ssh-in -p tcp --dport 22 -j ACCEPT
+iptables -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL RST --dport ssh -j ACCEPT
+iptables -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL FIN --dport ssh -j ACCEPT
+iptables -A ssh-in -m limit --limit 3/minute -p tcp --tcp-flags ALL SYN --dport ssh -j ACCEPT
+iptables -A ssh-in -m state --state RELATED,ESTABLISHED -p tcp --dport ssh -j ACCEPT
+
+iptables -N nginx
+iptables -F nginx
+
+iptables -A nginx -p tcp --dport 80 -j ACCEPT
+
+iptables -N mysql
+iptables -F mysql
+
+iptables -A mysql -p tcp --dport 3306 -j ACCEPT
+
+iptables -N dhcpd
+iptables -F dhcpd
+
+iptables -A dhcpd -p udp --dport 67:68 --sport 67:68 -j ACCEPT
+
+iptables -N lan-in
+iptables -F lan-in
+
+iptables -A lan-in -j ACCEPT
+
+
+iptables -N icmp_in
+iptables -F icmp_in
+
+iptables -A icmp_in -m state --state NEW -p icmp --icmp-type echo-request -j ACCEPT
+iptables -A icmp_in -m state --state NEW -p icmp --icmp-type time-exceeded -j ACCEPT
+iptables -A icmp_in -m state --state NEW -p icmp --icmp-type destination-unreachable -j ACCEPT
+
+
+iptables -N icmp-out
+iptables -F icmp-out
+
+iptables -A icmp-out -p icmp --icmp-type 8 -j ACCEPT
+iptables -A icmp-out -m state --state NEW -p icmp --icmp-type time-exceeded -j ACCEPT
+iptables -A icmp-out -m state --state NEW -p icmp --icmp-type destination-unreachable -j ACCEPT
+
+iptables -N mail
+iptables -F mail
+
+iptables -A mail -p tcp -m multiport --dports 25,110,143 -j ACCEPT
+
+iptables -N named
+iptables -F named
+iptables -A named -p udp --sport 53 -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A named -p udp --dport 53 -j ACCEPT
+iptables -A named -p tcp --dport 53 -j ACCEPT
+
+iptables -N panarin
+iptables -F panarin
+iptables -A panarin -p tcp -m multiport --dports 35060,33334,35300 -j ACCEPT
+iptables -A panarin -p udp -m udp --sport 16000:16100 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A panarin -p udp -m udp --dport 35060 -j ACCEPT
+
+iptables -N statefull
+iptables -F statefull
+
+iptables -A statefull -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+
+iptables -A INPUT -j common-check
+iptables -A INPUT -p tcp --dport 22 -j ssh-in
+iptables -A INPUT -p tcp --dport 80 -j nginx
+iptables -A INPUT -p tcp --dport 3306 -j mysql
+iptables -A INPUT -p UDP --dport 68 --sport 67 -j dhcpd
+iptables -A INPUT -p tcp --dport 53 -j named
+iptables -A INPUT -p udp --dport 53 -j named
+iptables -A INPUT -s 10.0.12.0/24 -j lan-in
+iptables -A INPUT -s 10.10.8.0/24 -j lan-in
+iptables -A INPUT -s 10.10.9.0/24 -j lan-in
+iptables -A INPUT -s 10.10.10.0/24 -j lan-in
+iptables -A INPUT -p tcp -m tcp -d 94.228.254.119 --dport 33500 -j ACCEPT
+iptables -A INPUT -p tcp -m tcp -d 94.228.254.119 -j DROP
+iptables -A INPUT -j panarin
+iptables -A INPUT -p tcp --sport 3306 -m conntrack --ctstate ESTABLISHED -j mysql
+iptables -A INPUT -i br0 -j lan-in
+iptables -A INPUT -i vnet0 -j lan-in
+iptables -A INPUT -p icmp -j icmp_in
+iptables -A INPUT -i lo -d 127.0.0.1 -j ACCEPT
+iptables -A INPUT -j statefull
+
+iptables -A OUTPUT -j common-check
+iptables -A OUTPUT -s 10.0.12.0/24 -j ACCEPT
+iptables -A OUTPUT -s 10.10.8.0/24 -j ACCEPT
+iptables -A OUTPUT -s 10.10.9.0/24 -j ACCEPT
+iptables -A OUTPUT -s 10.10.10.0/24 -j ACCEPT
+iptables -A OUTPUT -j panarin
+iptables -A OUTPUT -p tcp --dport 873 -j ACCEPT 
+iptables -A OUTPUT -p tcp --dport 9418 -j ACCEPT
+iptables -A OUTPUT -p icmp -j icmp-out
+iptables -A OUTPUT -p tcp -m multiport --dports 35060,33334,35300 -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+iptables -A OUTPUT -o enp0s25 -j ACCEPT
+iptables -A OUTPUT -o br0 -j ACCEPT
+iptables -A OUTPUT -o vnet0 -j ACCEPT
+iptables -A OUTPUT -p tcp -m multiport --sports 25,110,143 -j ACCEPT
+iptables -A OUTPUT -p udp -m udp --dport 53 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p tcp -m tcp --dport 53 -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 3306 -j ACCEPT
+iptables -A OUTPUT -p UDP --dport 67 --sport 68 -j ACCEPT
+iptables -A OUTPUT -j statefull
+
+iptables -A FORWARD -j common-check
+iptables -A FORWARD -s 10.0.12.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.10.8.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.10.9.0/24 -j ACCEPT
+iptables -A FORWARD -s 10.10.10.0/24 -j ACCEPT
+iptables -A FORWARD -i br0 -j ACCEPT
+iptables -A FORWARD -i vnet0 -j ACCEPT
+iptables -A FORWARD -j statefull 
+
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 14770 -j DNAT --to-destination 10.0.12.202:3389
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 1194 -j DNAT --to-destination 10.0.12.202:1194
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p udp -m udp --dport 35060 -j DNAT --to-destination 10.0.12.202:35060
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 35300 -j DNAT --to-destination 10.0.12.202:35300
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p udp -m udp --sport 16000:16100 -j DNAT --to-destination 10.0.12.202
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 33334 -j DNAT --to-destination 10.0.12.202:33334
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 14771 -j DNAT --to-destination 10.0.12.202:33890
+iptables -t nat -D PREROUTING -d 10.0.12.1/32 -p tcp -m tcp --dport 33890 -j DNAT --to-destination 10.10.10.3:3389
+iptables -t nat -A PREROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 33890 -j DNAT --to-destination 10.10.10.3:3389
+iptables -t nat -A POSTROUTING -d 10.0.12.202/32 -p tcp -m tcp --dport 3389 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -d 10.0.12.202/32 -p tcp -m tcp --dport 1194 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -s 10.0.12.0/24 -o enp0s25 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -s 10.10.8.0/24 -o enp0s25 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -s 10.10.9.0/24 -o enp0s25 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -s 10.10.10.0/24 -o enp0s25 -j SNAT --to-source 94.228.254.119
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 14770 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 35060 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 33334 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 35300 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p udp -m udp --sport 16000:16100 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -d 94.228.254.119/32 -p tcp -m tcp --dport 14771 -j SNAT --to-source 10.0.12.202
+iptables -t nat -A POSTROUTING -s 10.0.12.0/24 -p tcp -m multiport --dports 80 -j SNAT --to-source 94.228.254.119
+
+
+

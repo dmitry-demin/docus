@@ -1,0 +1,241 @@
+
+git clone https://github.com/novnc/noVNC.git /opt/noVNC
+
+cd /opt/noVNC
+
+
+Настройка Nginx
+
+
+ location /websockify {
+          proxy_http_version 1.1;
+          proxy_pass http://vnc_app/;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+
+          # VNC connection timeout
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+    }
+
+    location /vnc1/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc2/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc3/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc4/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc5/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;    
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc6/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc7/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+
+    location /vnc8/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc9/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc10/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+    location /vnc11/ {
+          proxy_pass http://vnc_app/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+
+          # Disable cache
+          proxy_buffering off;
+          root /opt/noVNC/;
+
+    }
+
+upstream vnc_app {
+  
+  server     192.168.0.52:6080  fail_timeout=10s;
+  server     192.168.0.52:6081  fail_timeout=10s;
+  server     192.168.0.52:6082  fail_timeout=10s;
+  server     192.168.0.52:6083  fail_timeout=10s;
+  server     192.168.0.52:6084  fail_timeout=10s;
+  server     192.168.0.52:6085  fail_timeout=10s;
+  server     192.168.0.52:6086  fail_timeout=10s;
+  server     192.168.0.52:6087  fail_timeout=10s;
+  server     192.168.0.52:6088  fail_timeout=10s;
+  server     192.168.0.52:6089  fail_timeout=10s;
+  server     192.168.0.52:6090  fail_timeout=10s;
+  server     192.168.0.52:6091  fail_timeout=10s;
+
+}
+
+upstream vnc_app1 {
+  
+  server     192.168.0.52:6081  fail_timeout=10s;
+}
+upstream vnc_app2 {
+  
+  server     192.168.0.52:6082  fail_timeout=10s;
+}
+upstream vnc_app3 {
+  
+  server     192.168.0.52:6083  fail_timeout=10s;
+}
+upstream vnc_app4 {
+  
+  server     192.168.0.52:6084  fail_timeout=10s;
+}
+upstream vnc_app5 {
+  
+  server     192.168.0.52:6085  fail_timeout=10s;
+}
+
+upstream vnc_app6 {
+
+  server     192.168.0.52:6086  fail_timeout=10s;
+}
+upstream vnc_app7 {
+
+  server     192.168.0.52:6087  fail_timeout=10s;
+}
+upstream vnc_app8 {
+
+  server     192.168.0.52:6088  fail_timeout=10s;
+}
+upstream vnc_app9 {
+
+  server     192.168.0.52:6089  fail_timeout=10s;
+}
+upstream vnc_app10 {
+
+  server     192.168.0.52:6090  fail_timeout=10s;
+}
+
+upstream vnc_app11 {
+
+  server     192.168.0.52:6091  fail_timeout=10s;
+}
+
+
+
+Запуск NoVNC
+
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6080 --web /opt/noVNC/ --vnc 127.0.0.1:5920 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6081 --web /opt/noVNC/ --vnc 127.0.0.1:5921 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6082 --web /opt/noVNC/ --vnc 127.0.0.1:5922 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6083 --web /opt/noVNC/ --vnc 127.0.0.1:5923 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6084 --web /opt/noVNC/ --vnc 127.0.0.1:5924 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6085 --web /opt/noVNC/ --vnc 127.0.0.1:5925 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6086 --web /opt/noVNC/ --vnc 127.0.0.1:5926 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6087 --web /opt/noVNC/ --vnc 127.0.0.1:5927 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6088 --web /opt/noVNC/ --vnc 127.0.0.1:5928 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6089 --web /opt/noVNC/ --vnc 127.0.0.1:5929 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6090 --web /opt/noVNC/ --vnc 127.0.0.1:5930 &
+/bin/bash /opt/noVNC/utils/launch.sh --listen 6091 --web /opt/noVNC/ --vnc 127.0.0.1:5931 &
+
+
+
+

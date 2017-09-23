@@ -1,0 +1,186 @@
+ 
+cat /sys/module/kvm_intel/parameters/nested
+Если сторит нет, тогда:
+modprobe kvm_intel nested=1
+либо добавить в cat /etc/modprobe.d/kvm.conf 
+###
+### This configuration file was provided by the qemu package.
+### Feel free to update as needed.
+###
+
+###
+### Set these options to enable nested virtualization
+###
+
+options kvm_intel nested=1
+#options kvm_amd nested=1
+
+Ядро собираем версии не ниже 4.10
+
+rpm -qa | grep qemu
+qemu-block-gluster-2.9.1-1.fc26.x86_64
+qemu-kvm-2.9.1-1.fc26.x86_64
+libvirt-daemon-driver-qemu-3.2.1-5.fc26.x86_64
+qemu-common-2.9.1-1.fc26.x86_64
+qemu-block-rbd-2.9.1-1.fc26.x86_64
+qemu-block-curl-2.9.1-1.fc26.x86_64
+qemu-block-ssh-2.9.1-1.fc26.x86_64
+qemu-block-nfs-2.9.1-1.fc26.x86_64
+qemu-system-x86-core-2.9.1-1.fc26.x86_64
+qemu-img-2.9.1-1.fc26.x86_64
+qemu-block-dmg-2.9.1-1.fc26.x86_64
+qemu-system-x86-2.9.1-1.fc26.x86_64
+ipxe-roms-qemu-20161108-2.gitb991c67.fc26.noarch
+qemu-block-iscsi-2.9.1-1.fc26.x86_64
+
+После это подключаем Windows 10:
+
+virsh dumpxml W10-Hyper
+<domain type='kvm' id='12'>
+  <name>W10-Hyper</name>
+  <uuid>99960edd-1364-4973-b813-eaa3513c4b74</uuid>
+  <memory unit='KiB'>51200000</memory>
+  <currentMemory unit='KiB'>51200000</currentMemory>
+  <vcpu placement='static'>4</vcpu>   ##### Включаем параметр виртуальных ядер
+  <resource>
+    <partition>/machine</partition>
+  </resource>
+  <os>
+    <type arch='x86_64' machine='pc-i440fx-2.9'>hvm</type>
+    <boot dev='hd'/>
+    <bootmenu enable='no'/>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+                       ########## Если использовать virt-manager, тогда указываем операционную систему
+    <hyperv>           ###### Обязательный параметр hyperv
+      <relaxed state='on'/>
+      <vapic state='on'/>
+      <spinlocks state='on' retries='8191'/>
+    </hyperv>
+    <vmport state='off'/>   
+  </features>
+  <cpu mode='custom' match='exact' check='full'>   ###### Я долги играл с опциями, простой способ использовать команду virsh capabilities | egrep "/model|/vendor"
+    <model fallback='forbid'>Haswell</model>
+    <feature policy='require' name='vmx'/>
+    <feature policy='require' name='vme'/>
+    <feature policy='require' name='f16c'/>
+    <feature policy='require' name='rdrand'/>
+    <feature policy='require' name='hypervisor'/>
+    <feature policy='require' name='arat'/>
+    <feature policy='require' name='xsaveopt'/>
+    <feature policy='require' name='abm'/>
+  </cpu>
+  <clock offset='localtime'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+    <timer name='hypervclock' present='yes'/>    ###### Обязательный параметр hypervclock
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>restart</on_crash>
+  <pm>
+    <suspend-to-mem enabled='no'/>
+    <suspend-to-disk enabled='no'/>
+  </pm>
+  <devices>
+    <emulator>/usr/bin/qemu-kvm</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2' cache='none'/>   ##### Отключаем кэширование VM
+      <source file='/var/lib/libvirt/images/generic-clone.qcow2'/>
+      <backingStore/>
+      <target dev='hda' bus='ide'/>
+      <alias name='ide0-0-0'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/var/lib/libvirt/images/virtio-win-0.1.135.iso'/>  ## Драйвера для сетевой карты, так как со стандартными e1000 и r815 не работает
+      <backingStore/>
+      <target dev='hdb' bus='ide'/>
+      <readonly/>
+      <alias name='ide0-0-1'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='1'/>
+    </disk>
+    <controller type='pci' index='0' model='pci-root'>
+      <alias name='pci.0'/>
+    </controller>
+    <controller type='ide' index='0'>
+      <alias name='ide'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <controller type='virtio-serial' index='0'>
+      <alias name='virtio-serial0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </controller>
+    <controller type='usb' index='0' model='nec-xhci'>
+      <alias name='usb'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
+    </controller>
+    <interface type='bridge'>
+      <mac address='52:54:00:78:1a:47'/>
+      <source bridge='br122'/>
+      <target dev='vnet0'/>
+      <model type='virtio'/>
+      <alias name='net0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <source path='/dev/pts/2'/>
+      <target port='0'/>
+      <alias name='serial0'/>
+    </serial>
+    <console type='pty' tty='/dev/pts/2'>
+      <source path='/dev/pts/2'/>
+      <target type='serial' port='0'/>
+      <alias name='serial0'/>
+    </console>
+    <channel type='spicevmc'>
+      <target type='virtio' name='com.redhat.spice.0' state='disconnected'/>
+      <alias name='channel0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <input type='tablet' bus='usb'>
+      <alias name='input0'/>
+      <address type='usb' bus='0' port='1'/>
+    </input>
+    <input type='mouse' bus='ps2'>
+      <alias name='input1'/>
+    </input>
+    <input type='keyboard' bus='ps2'>
+      <alias name='input2'/>
+    </input>
+    <graphics type='vnc' port='7013' autoport='no' listen='0.0.0.0'>
+      <listen type='address' address='0.0.0.0'/>
+    </graphics>
+    <sound model='ich6'>
+      <alias name='sound0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x04' function='0x0'/>
+    </sound>
+    <video>
+      <model type='cirrus' vram='16384' heads='1' primary='yes'/>
+      <alias name='video0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x02' function='0x0'/>
+    </video>
+    <redirdev bus='usb' type='spicevmc'>
+      <alias name='redir0'/>
+      <address type='usb' bus='0' port='2'/>
+    </redirdev>
+    <redirdev bus='usb' type='spicevmc'>
+      <alias name='redir1'/>
+      <address type='usb' bus='0' port='3'/>
+    </redirdev>
+    <memballoon model='virtio'>
+      <stats period='5'/>
+      <alias name='balloon0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+    </memballoon>
+  </devices>
+  <seclabel type='none' model='none'/>
+  <seclabel type='dynamic' model='dac' relabel='yes'>
+    <label>+107:+107</label>
+    <imagelabel>+107:+107</imagelabel>
+  </seclabel>
+</domain>

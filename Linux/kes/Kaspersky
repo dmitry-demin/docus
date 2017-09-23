@@ -1,0 +1,30 @@
+Скачать с оф. ресурса файл kes4lwks-8.0.1-50.i386.rpm
+
+Далее, так как система у нас подготовленна и настроена с 64 разрядностью, требуется некая подготовка. 
+rpm -i kes4lwks-8.0.1-50.i386.rpm 
+Starting kes4lwks-supervisor [  OK  ]
+Kaspersky Endpoint Security 8 for Linux has been installed successfully,
+but it must be properly configured before using.
+Please run /opt/kaspersky/kes4lwks/bin/kes4lwks-setup.pl script manually to configure it.
+Согласно инструкции подготавливаем антивирус Касперского.
+Соглашаемся с Лицензией EULA?
+yes
+Setting up the Anti-Virus Service default locale
+Устанавливаем согласно вашим предпочтениям.
+Далее, указываем путь к file ключу (авторизация программы)
+/root/520C76D3.key
+The license from /root/520C76D3.key has been installed.
+Установщик предложит настроить прокси соединение, если это потребуется укажите адрес, в нашем же случае, пишем нет (no)
+Далее предлагается обновить сигнатуры баз, нажимаем yes
+Далее установка обновления по расписанию, соглашаемся.
+Далее предлагается настройка защита на уровне ядра в реальном времени, для наших нужд ставим нет. 
+Подтверждаем, yes
+Установщик пытается найти Samba Server, у нас он не установлен, ставим no
+Настройка при помощи gui, отказываемся. 
+Установка на этом завершина.
+
+Обновление баз вручную:
+/opt/kaspersky/kes4lwks/bin/kes4lwks-control --start-task 6 --progress
+Сканирование файла(ов):
+/opt/kaspersky/kes4lwks/bin/kes4lwks-control --scan-file ./
+

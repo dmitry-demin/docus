@@ -1,0 +1,58 @@
+#!/bin/bash
+
+conf_file="$1"
+OLDIFS=$IFS
+
+#if [ -f $conf_file ]
+#  then
+#  for sect_deny in $( grep '^\;' $conf_file )
+#    do
+#    section_deny=${sect_deny/;/\\;}
+#    section_deny=${section_deny/]/\\]}
+#    IFS=$'\n'
+#    for deny in $( sed -n "/$sect_deny/"',$p' $conf_file | grep -v $section_deny )
+#     do
+#        echo $deny
+#       if [ ${deny:0:1} != '\;' ]
+#       then
+#          param_deny=;${deny}
+#          eval $param_deny > /dev/null 2>&1
+#          echo $param_deny
+        #   else
+#        #   echo $param_deny
+#       fi
+#    done
+#  done
+#   for sect_allow in $( grep '^\[' $conf_file )
+#    do
+#    section_allow=${sect_allow/[/\\[}
+#    section_allow=${section_allow/]/\\]}
+#    done
+
+#else
+#    echo "Please enter filename"
+#fi
+
+for i in $( grep '^\[' $conf_file )
+do
+    section=${i/[/\\[}
+    section=${section/]/\\]}
+       IFS=$'\n'
+           for b in $( sed -n "/$section/"',$p' $config_file | grep -v $section )
+           do
+           if [ ${b:0:1} = ';' ]
+           then
+              continue 2
+           else
+              if [ ${b:0:1} != '[' ]
+              then
+              param=_${b}
+                 eval $param > /dev/null 2>&1
+                 else
+                 echo $param
+              fi
+           fi
+done
+done
+
+

@@ -1,0 +1,81 @@
+cat /etc/freetds.conf 
+
+# Global settings are overridden by those in a database
+# server specific section
+[global]
+        # TDS protocol version
+        tds version = auto
+
+        # Whether to write a TDSDUMP file for diagnostic purposes
+        # (setting this to /tmp is insecure on a multi-user system)
+        dump file = /tmp/freetds.log
+;       debug flags = 0xffff
+
+        # Command and connection timeouts
+;       timeout = 0
+;       connect timeout = 0
+
+        # If you get out-of-memory errors, it may mean that your client
+        # is trying to allocate a huge buffer for a TEXT field.  
+        # Try setting 'text size' to a more reasonable limit 
+;       text size = 64512
+        text size = 4294967295
+
+try server login = yes
+try domain login = no
+client charset = CP1251
+
+[skynet2]
+        host = skynet2.lab.gemotest.ru
+        port = 1433
+        user = conlinux
+        password = fe7f17dD812A7b61
+        database = OrdersFromCACHE
+
+        
+       
+sl5-web-h2 nginx # cat /etc/unixODBC/odbc.ini 
+[skynet2]
+Driver=SQL Server Native Client 13.0
+Description=MSSQL Server Connect
+Server=skynet2.lab.gemotest.ru
+
+sl5-web-h2 nginx # cat /etc/unixODBC/odbcinst.ini
+[ODBC]
+Trace=Yes
+TraceFile=/tmp/odbc.log
+UsageCount=9
+
+[FreeTDS]
+Description=TDS driver (Sybase/MS SQL)
+Driver=/usr/lib64/libtdsodbc.so
+UsageCount=9
+
+[SQL Server Native Client 13.0]
+Description=Microsoft SQL Server ODBC Driver
+Driver=/opt/microsoft/msodbcsql/lib64/libmsodbcsql-11.0.so.2270.0
+Threading=1
+UsageCount=8
+
+
+
+
+
+
+
+
+
+Чтобы удалить параметры драйвера из системы:
+$sudo odbcinst -u -d -n FreeTDS
+
+Чтобы удалить регистрацию DSN из системы:
+$sudo odbcinst -u -s -l -n MSSQL
+
+Во избежание конфликтов, лучше удалить локальный настройки ODBC:
+$rm /home/name/.odbc.ini
+
+
+
+
+
+

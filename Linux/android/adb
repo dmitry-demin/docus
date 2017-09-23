@@ -1,0 +1,22 @@
+mkdir -p /root/wkixgrs.odygpulkr.obwprlmaeks/ 
+
+adb -s emulator-5556 shell /services/activity_control_client GET_PROCESS_LIST | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_get_proc-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/activity_control_client LOCK
+adb -s emulator-5556  shell /services/activity_control_client  ADD_APP_FILTER  wkixgrs.odygpulkr.obwprlmaeks -
+adb -s emulator-5556  shell /services/checksum_control_client  CREATE_ETALON
+adb -s emulator-5556  shell /services/activity_control_client UNLOCK
+adb -s emulator-5556  shell /services/activity_control_client  GET_SERVER_STATUS
+adb -s emulator-5556  install -rg /root/5C1CAD80C3C08E005245D3B5A73DC99E.apk
+adb -s emulator-5556  shell monkey -p wkixgrs.odygpulkr.obwprlmaeks -c android.intent.category.LAUNCHER 1
+
+adb -s emulator-5556 shell /services/activity_control_client GET_PROCESS_LIST | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_get_proc-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/tail -n 1000000000000000 /mnt/auditlogd/audit/wkixgrs.odygpulkr.obwprlmaeks.txt | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_audit_files-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/activity_control_client LOCK
+adb -s emulator-5556  shell /services/activity_control_client  DEL_APP_FILTER wkixgrs.odygpulkr.obwprlmaeks
+adb -s emulator-5556  shell /services/checksum_control_client  GET_ADD_FILES | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_add_files-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/checksum_control_client  GET_MODIFY_FILES | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_modified_files-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/checksum_control_client  GET_DELETE_FILES | tee -a /root/wkixgrs.odygpulkr.obwprlmaeks/wkixgrs.odygpulkr.obwprlmaeks_delete_files-`date +%d_%m_%Y_%T`.log
+adb -s emulator-5556  shell /services/activity_control_client UNLOCK
+
+adb -s emulator-5556 uninstall -k wkixgrs.odygpulkr.obwprlmaeks
+

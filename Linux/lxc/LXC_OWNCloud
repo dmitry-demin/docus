@@ -1,0 +1,81 @@
+Настройки /var/lib/lxc/owncloud/config 
+
+# Template used to create this container: /usr/share/lxc/templates/lxc-centos
+# Parameters passed to the template:
+# For additional config options, please look at lxc.container.conf(5)
+lxc.network.type = veth
+lxc.network.flags = up
+lxc.network.link = br0
+lxc.network.ipv4 = 192.168.10.80/24
+lxc.network.ipv4.gateway = 192.168.10.2
+lxc.network.hwaddr = fe:2f:3d:ed:5c:f6
+lxc.rootfs = /var/lib/lxc/owncloud/rootfs
+
+# Include common configuration
+lxc.include = /usr/share/lxc/config/centos.common.conf
+
+lxc.arch = x86_64
+lxc.utsname = owncloud.avsw.ru
+
+lxc.autodev = 1
+lxc.start.auto = 1
+lxc.start.delay = 0
+lxc.start.order = 0
+
+
+lxc.mount.auto = proc sys cgroup
+lxc.mount.auto = proc:rw sys:rw cgroup-full:rw
+
+# memory Limit
+lxc.cgroup.memory.limit_in_bytes = 1G
+lxc.cgroup.memory.memsw.limit_in_bytes = 2G
+
+lxc.aa_profile = lxc-container-default-with-nesting
+
+
+Важный момент, при установке httpd может заругаться на такую штуку: 
+error: unpacking of archive failed on file /usr/sbin/suexec;595387e6: cpio: cap_set_file
+  Проверка    : httpd-2.4.6-45.el7.centos.4.x86_64                                                                                                                                        1/1 
+
+  
+Лечение: 
+В директории /usr/share/lxc/config/centos.common.conf
+Есть параметр
+lxc.cap.drop = mac_admin mac_override setfcap
+Нужно удалить или закоментировать setfcap
+lxc.cap.drop = mac_admin mac_override
+
+Далее, произведется полностью установка.
+
+rpm --import https://download.owncloud.org/download/repositories/stable/CentOS_7/repodata/repomd.xml.key
+curl -L https://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -o /etc/yum.repos.d/ownCloud.repos
+
+yum clean expire-cache
+
+yum install -y owncloud
+
+Настраиваем mysql
+mysql -u root -p
+CREATE DATABASE owncloud;
+GRANT ALL ON owncloud.* to 'owncloud'@'localhost' IDENTIFIED BY 'set_database_password';
+FLUSH PRIVILEGES;
+
+systemctl enable httpd
+systemctl start httpd
+
+https://server_domain_or_IP/owncloud
+
+Далее вбиваем настройки.
+
+Интегрируем c samba
+yum -y install php-smbclient.x86_64
+
+PHP Warning:  PHP Startup: Unable to load dynamic library '/usr/lib64/php/modules/smbclient.so' - libwbclient.so.0: cannot open shared object file: No such file or directory in Unknown on line 0
+
+Далее apachectl gracefull
+
+И настраиваем все в админке.
+
+Проверено работает.
+
+

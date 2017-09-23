@@ -1,0 +1,15 @@
+Debin install 
+
+apt-get install bash-completion
+
+Add ro bashrc or profile
+
+if [ -f /etc/bash_completion ]; then
+ . /etc/bash_completion
+fi
+
+Centos install
+
+yum -y install epel-release
+yum -y install bash-completion-extras.noarch
+

@@ -1,0 +1,36 @@
+[root@athena ~]# virsh 
+Добро пожаловать в virsh — интерактивный терминал виртуализации.
+
+Введите  «help» для получения справки по командам
+       «quit» для выхода
+
+virsh # pool-define-as network-pool-images fs - - /dev/rbd0 - "/var/lib/libvirt/images-rbd0"
+Пул network-pool-images определён
+
+virsh # pool-list --all
+Имя               Статус Автозапуск
+-----------------------------------------
+default              активен yes       
+network-pool-images  не активен no        
+
+virsh # pool-build network-pool-images
+Пул network-pool-images собран
+
+virsh # pool-start network-pool-images
+Пул network-pool-images запущен
+
+virsh # pool-autostart network-pool-images
+Добавлена метка автоматического запуска пула network-pool-images
+
+virsh # pool-info network-pool-images
+Имя:         network-pool-images
+UUID:           452473f8-9ad1-b7f5-1d30-67fe88046296
+Статус:   работает
+Persistent:     yes
+Автозапуск: yes
+Ёмкость: 4,77 TiB
+Выделение: 33,06 MiB
+Доступно: 4,77 TiB
+
+virsh # exit
+ 
