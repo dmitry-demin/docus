@@ -26,11 +26,11 @@ try domain login = no
 client charset = CP1251
 
 [skynet2]
-        host = skynet2.lab.gemotest.ru
+        host = server
         port = 1433
         user = conlinux
-        password = fe7f17dD812A7b61
-        database = OrdersFromCACHE
+        password = SuperMegaPassW@@rT
+        database = BAZADANN
 
         
        
@@ -38,7 +38,7 @@ sl5-web-h2 nginx # cat /etc/unixODBC/odbc.ini
 [skynet2]
 Driver=SQL Server Native Client 13.0
 Description=MSSQL Server Connect
-Server=skynet2.lab.gemotest.ru
+Server=server
 
 sl5-web-h2 nginx # cat /etc/unixODBC/odbcinst.ini
 [ODBC]
