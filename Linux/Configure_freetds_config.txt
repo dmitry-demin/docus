@@ -38,7 +38,7 @@
         host = webserver
         port = 1433
         user = sa
-        password = hYsnf53Td2
+        password = SuperMegaPassw@@rT
         database = sandBox
         tds version = 7.0
 
@@ -51,7 +51,7 @@ Driver=FreeTDS
 Description=MSSQL Server Connect
 Server=webserver\sqlexpress
 UID=sa
-PWD=hYsnf53Td2
+PWD=SuperMegaPassw@@rT
 Database=sandBox
 
 
@@ -100,8 +100,8 @@ $sudo odbcinst -u -d -n FreeTDS
 Чтобы удалить регистрацию DSN из системы:
 $sudo odbcinst -u -s -l -n webserver
 
-tsql -S webserver -U sa -P hYsnf53Td2 -D sandBox
-isql -v webserver sa hYsnf53Td2
-osql -S webserver -U sa -P hYsnf53Td2
+tsql -S webserver -U sa -P SuperMegaPassw@@rT -D sandBox
+isql -v webserver sa SuperMegaPassw@@rT
+osql -S webserver -U sa -P SuperMegaPassw@@rT
 
 
