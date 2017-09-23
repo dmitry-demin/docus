@@ -159,7 +159,7 @@ upstream web {
 
 server {
 
-        server_name office.gemotest.ru;
+        server_name Xxxxxx.gemotest.ru;
         listen 80;
         access_log /var/log/nginx/office.access_log main;
         error_log /var/log/nginx/office.error_log info;
@@ -205,17 +205,17 @@ server {
 
 sl5-web-h2 nginx # cat /etc/nginx/conf.d/office_ssl.gemotest.ru 
 server {
-        server_name office.gemotest.ru office;
+        server_name oxx.gemotest.ru office;
         listen 443 ssl;
-        return 301 http://office.gemotest.ru$request_uri;
+        return 301 http://oxx.gemotest.ru$request_uri;
 
-        if ($http_host != "office.gemotest.ru") {
-        rewrite ^ http://office.gemotest.ru$request_uri permanent;
+        if ($http_host != "oxx.gemotest.ru") {
+        rewrite ^ http://oXx.gemotest.ru$request_uri permanent;
         }
 
         keepalive_timeout   60;
-        ssl_certificate      /etc/nginx/ssl/gemotest.ru.crt;
-        ssl_certificate_key  /etc/nginx/ssl/gemotest.ru.key;
+        ssl_certificate      /etc/nginx/ssl/xxxx.ru.crt;
+        ssl_certificate_key  /etc/nginx/ssl/xxxx.ru.key;
         ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
         ssl_ciphers  "RC4:HIGH:!aNULL:!MD5:!kEDH";
 
@@ -226,7 +226,7 @@ server {
 sl5-web-h2 nginx # cat /etc/nginx/conf.d/uni.gemotest.ru 
 server {
         listen 80;
-        server_name uni.gemotest.ru;
+        server_name unix.gemotest.ru;
   
         access_log /var/log/nginx/uni.access_log main;
         error_log /var/log/nginx/uni.error_log info;
@@ -234,8 +234,8 @@ server {
 #       auth_ldap "Folder";
 #       auth_ldap_servers LDAP1;    
 
-        location /uni {
-        proxy_pass http://uni.gemotest.ru/uni;
+        location /unix {
+        proxy_pass http://unix.gemotest.ru/uni;
         proxy_set_header Host      $host;
         proxy_set_header X-Real-IP $remote_addr;
         }
@@ -255,9 +255,9 @@ sl5-web-h2 nginx # cat /etc/nginx/ldap/ldap.conf
       auth_ldap_cache_expiration_time 3600000;
       auth_ldap_cache_size 1000;
       ldap_server LDAP1 {
-          url ldaps://lub-dc3.lab.gemotest.ru/DC=lab,DC=gemotest,DC=ru?sAMAccountName?sub?(objectClass=user);
-          binddn "LAB\\dd_odmin";
-          binddn_passwd "T,fyenstT,fyfirb";
+          url ldaps://AD-Controller/DC=lab,DC=gemotest,DC=ru?sAMAccountName?sub?(objectClass=user);
+          binddn "LAB\\Administrator";
+          binddn_passwd "SuperMegaPassW@@rT";
           group_attribute uniquemember;
           group_attribute_is_dn on;
           require valid_user;
@@ -268,7 +268,7 @@ sl5-web-h2 nginx # cat /etc/nginx/ldap/ldap.conf
           #If you wanna use group, uncomment top:
           #group_attribute member;
           #group_attribute_is_dn on;
-          #require group "OU=Departments,OU=Gemotest,DC=lab,DC=gemotest,DC=ru";
+          #require group "OU=Departments,OU=XXXX,DC=lab,DC=XXXXX,DC=ru";
       }
 
 
