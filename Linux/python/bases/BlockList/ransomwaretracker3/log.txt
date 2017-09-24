@@ -1,0 +1,151 @@
+---2017-07-06_23_54---
+insert:1823 records
+delete: 0 records
+
+---2017-07-07_00_03---
+insert:1823 records
+delete: 0 records
+
+---2017-07-07_00_13---
+insert:1823 records
+delete: 0 records
+
+---2017-07-07_00_14---
+insert:1823 records
+delete: 0 records
+
+---2017-07-07 00:15---
+insert:1823 records
+delete: 0 records
+
+---2017-08-29 12:18---
+insert:1858 records
+delete: 1822 records
+
+---2017-08-30 01:23---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 01:25---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 10:35---
+insert:1860 records
+delete: 0 records
+
+---2017-08-30 10:37---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 11:02---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 11:24---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 12:34---
+insert:1860 records
+delete: 0 records
+
+---2017-08-30 12:34---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 12:40---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 12:45---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 12:46---
+insert:0 records
+delete: 0 records
+
+---2017-08-30 12:53---
+insert:0 records
+delete: 0 records
+
+---2017-09-04 20:00---
+insert:1 records
+delete: 0 records
+
+---2017-09-05 05:03---
+insert:0 records
+delete: 0 records
+
+---2017-09-06 05:03---
+insert:2 records
+delete: 0 records
+
+---2017-09-07 05:04---
+insert:1 records
+delete: 0 records
+
+---2017-09-08 05:03---
+insert:2 records
+delete: 0 records
+
+---2017-09-09 05:03---
+insert:1 records
+delete: 0 records
+
+---2017-09-10 05:06---
+insert:0 records
+delete: 0 records
+
+---2017-09-11 05:06---
+insert:0 records
+delete: 0 records
+
+---2017-09-12 05:07---
+Csv upload error. Maybe url is not available
+
+---2017-09-13 05:03---
+insert:2 records
+delete: 0 records
+
+---2017-09-14 05:05---
+insert:0 records
+delete: 0 records
+
+---2017-09-15 05:05---
+insert:0 records
+delete: 0 records
+
+---2017-09-16 05:03---
+insert:0 records
+delete: 0 records
+
+---2017-09-17 05:03---
+insert:2 records
+delete: 0 records
+
+---2017-09-18 05:03---
+insert:1 records
+delete: 0 records
+
+---2017-09-19 05:03---
+insert:1 records
+delete: 0 records
+
+---2017-09-20 05:03---
+insert:0 records
+delete: 0 records
+
+---2017-09-22 01:00---
+insert:0 records
+delete: 0 records
+
+---2017-09-23 01:00---
+insert:2 records
+delete: 0 records
+
+---2017-09-24 01:00---
+insert:0 records
+delete: 0 records
+

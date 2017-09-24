@@ -1,0 +1,143 @@
+---2017-07-06_23_54---
+insert:380 records
+delete: 0 records
+
+---2017-07-07_00_03---
+insert:380 records
+delete: 0 records
+
+---2017-07-07_00_13---
+insert:380 records
+delete: 0 records
+
+---2017-07-07_00_13---
+insert:380 records
+delete: 0 records
+
+---2017-07-07_00_14---
+insert:380 records
+delete: 0 records
+
+---2017-07-07 00:15---
+insert:380 records
+delete: 0 records
+
+---2017-08-29 12:18---
+insert:380 records
+delete: 0 records
+
+---2017-08-30 01:23---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 01:25---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 10:35---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 10:37---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 11:02---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 11:24---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:34---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:34---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:40---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:45---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:46---
+Csv upload error. Maybe url is not available
+
+---2017-08-30 12:53---
+Csv upload error. Maybe url is not available
+
+---2017-09-04 20:00---
+insert:400 records
+delete: 0 records
+
+---2017-09-05 05:03---
+insert:129 records
+delete: 129 records
+
+---2017-09-06 05:03---
+insert:314 records
+delete: 314 records
+
+---2017-09-07 05:04---
+insert:298 records
+delete: 299 records
+
+---2017-09-08 05:03---
+insert:314 records
+delete: 313 records
+
+---2017-09-09 05:03---
+insert:324 records
+delete: 324 records
+
+---2017-09-10 05:06---
+insert:134 records
+delete: 134 records
+
+---2017-09-11 05:06---
+insert:379 records
+delete: 380 records
+
+---2017-09-12 05:07---
+Csv upload error. Maybe url is not available
+
+---2017-09-13 05:03---
+insert:398 records
+delete: 398 records
+
+---2017-09-14 05:05---
+insert:365 records
+delete: 365 records
+
+---2017-09-15 05:05---
+insert:328 records
+delete: 328 records
+
+---2017-09-16 05:03---
+insert:302 records
+delete: 301 records
+
+---2017-09-17 05:03---
+insert:308 records
+delete: 308 records
+
+---2017-09-18 05:03---
+insert:298 records
+delete: 298 records
+
+---2017-09-19 05:03---
+insert:288 records
+delete: 288 records
+
+---2017-09-20 05:03---
+insert:318 records
+delete: 318 records
+
+---2017-09-22 01:00---
+insert:400 records
+delete: 0 records
+
+---2017-09-23 01:00---
+insert:400 records
+delete: 0 records
+
+---2017-09-24 01:00---
+insert:400 records
+delete: 0 records
+
