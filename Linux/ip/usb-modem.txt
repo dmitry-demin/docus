@@ -1,0 +1,77 @@
+yum -y install usb_modeswitch-2.4.0-5.el7.x86_64 usb_modeswitch-data-20160612-2.el7.noarch
+
+dmesg | grep usb 
+ищем строчку
+[  326.987050] cdc_ether 4-12:1.0 eth0: register 'cdc_ether' at usb-0000:00:14.0-12, CDC Ethernet Device, 0c:5b:8f:27:9a:64
+собственно все нашлость дело за малым
+
+udevadm info  /sys/class/net/enp0s20u12
+P: /devices/pci0000:00/0000:00:14.0/usb4/4-12/4-12:1.0/net/enp0s20u12
+E: DEVPATH=/devices/pci0000:00/0000:00:14.0/usb4/4-12/4-12:1.0/net/enp0s20u12
+E: ID_BUS=usb
+E: ID_MODEL=HUAWEI_MOBILE
+E: ID_MODEL_ENC=HUAWEI_MOBILE
+E: ID_MODEL_ID=14dc
+E: ID_NET_DRIVER=cdc_ether
+E: ID_NET_NAME_MAC=enx0c5b8f279a64
+E: ID_NET_NAME_PATH=enp0s20u12
+E: ID_PATH=pci-0000:00:14.0-usb-0:12:1.0
+E: ID_PATH_TAG=pci-0000_00_14_0-usb-0_12_1_0
+E: ID_REVISION=0102
+E: ID_SERIAL=HUAWEI_MOBILE_HUAWEI_MOBILE
+E: ID_TYPE=generic
+E: ID_USB_CLASS_FROM_DATABASE=Communications
+E: ID_USB_DRIVER=cdc_ether
+E: ID_USB_INTERFACES=:020600:0a0600:080650:
+E: ID_USB_INTERFACE_NUM=00
+E: ID_VENDOR=HUAWEI_MOBILE
+E: ID_VENDOR_ENC=HUAWEI_MOBILE
+E: ID_VENDOR_FROM_DATABASE=Huawei Technologies Co., Ltd.
+E: ID_VENDOR_ID=12d1
+E: IFINDEX=27
+E: INTERFACE=enp0s20u12
+E: MAJOR=0
+E: MINOR=0
+E: SUBSYSTEM=net
+E: SYSTEMD_ALIAS=/sys/subsystem/net/devices/enp0s20u12 /sys/subsystem/net/devices/enp0s20u12
+E: TAGS=:systemd:
+E: USEC_INITIALIZED=6603772
+
+ethtool -i enp0s20u12
+driver: cdc_ether
+version: 22-Aug-2005
+firmware-version: CDC Ethernet Device
+expansion-rom-version: 
+bus-info: usb-0000:00:14.0-12
+supports-statistics: no
+supports-test: no
+supports-eeprom-access: no
+supports-register-dump: no
+supports-priv-flags: no
+
+
+# Настройка интерфейса
+cat /etc/sysconfig/network-scripts/ifcfg-enp0s20u12 
+HWADDR=0C:5B:8F:27:9A:64
+TYPE=Ethernet
+BOOTPROTO=none
+NAME=enp0s20u12
+UUID=37cb2ca2-8e62-3da8-abaa-1c5b76b666ea
+ONBOOT=yes
+BRIDGE=Internet
+
+###Вгоняем модем в бридж
+cat /etc/sysconfig/network-scripts/ifcfg-Internet 
+### Bridge USB Modem
+DEVICE="Internet"
+TYPE="Bridge"
+BOOTPROTO="none"
+ONBOOT="yes"
+NM_CONTROLLED="no"
+DELAY=0
+
+### Далее пробрасываем модем на KVM
+### и раздаем уже через vyos
+
+
+
