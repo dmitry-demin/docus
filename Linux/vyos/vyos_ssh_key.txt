@@ -1,0 +1,6 @@
+configure
+set system login user vyos authentication public-keys demin key "AAAAB3NzaC1yc2EAAAADAQABAAABAQCSRLBrXrQJsr3WMpHXUTtg/ZLgI6cKMvG7ZryWzHn6LbdzkKv96a1bW71phQW58Ap0FQjabjNQQrJXwlnk8wg3B2BGg1ajxQomHuf4Y7q7wDF031fvef4eyteDlSnyFhbuIOr6sfOnI1ZoTGBK2x8giSJgpd1hx8yE21KUh7IkAa/ee+L0ahGYsUYyE/VKGPjTL5pJRzm4NTsv+8fhFIm5BKGg59fkoeFk7PBbAT9fA7OCHisiMrQKs2EyVwyLhDHlf7SlHhbJ/yIb87SPDX/fkKREYIafZWm/HP2kSPkM+2I5i3GagbQpKhrIqZY5vuby4bYxXmxaI+AiVVU31x0Z"
+set system login user vyos authentication public-keys demin type ssh-rsa
+
+commit
+save

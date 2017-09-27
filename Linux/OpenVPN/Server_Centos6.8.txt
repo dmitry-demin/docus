@@ -1,0 +1,100 @@
+Установка OPENVPN на  Centos 6.8
+
+yum install epel-release
+yum install openvpn easy-rsa -y
+
+
+cp /usr/share/doc/openvpn-*/sample/sample-config-files/server.conf /etc/openvpn
+vi /etc/openvpn/server.conf
+
+port 1194
+proto udp
+dev tun
+ca ca.crt
+cert server.crt
+key server.key  # This file should be kept secret
+dh dh2048.pem
+server 10.8.0.0 255.255.255.0
+ifconfig-pool-persist ipp.txt
+push "redirect-gateway def1 bypass-dhcp"
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
+keepalive 10 120
+cipher AES-256-CBC
+user nobody
+group nobody
+persist-key
+persist-tun
+status openvpn-status.log
+verb 3
+explicit-exit-notify 1
+
+
+mkdir -p /etc/openvpn/easy-rsa/keys
+cp -rf /usr/share/easy-rsa/2.0/* /etc/openvpn/easy-rsa
+vi /etc/openvpn/easy-rsa/vars
+
+export EASY_RSA="`pwd`"
+export OPENSSL="openssl"
+export PKCS11TOOL="pkcs11-tool"
+export GREP="grep"
+export KEY_CONFIG=`$EASY_RSA/whichopensslcnf $EASY_RSA`
+export KEY_DIR="$EASY_RSA/keys"
+echo NOTE: If you run ./clean-all, I will be doing a rm -rf on $KEY_DIR
+export PKCS11_MODULE_PATH="dummy"
+export PKCS11_PIN="dummy"
+export KEY_SIZE=2048
+export CA_EXPIRE=3650
+export KEY_EXPIRE=3650
+export KEY_COUNTRY="RU"
+export KEY_PROVINCE="Russia"
+export KEY_CITY="Moscow"
+export KEY_ORG="avsoft"
+export KEY_EMAIL="d.demin@avsw.ru"
+export KEY_OU="IT Department"
+export KEY_NAME="EasyRSA"
+
+
+cp /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.cnf
+cd /etc/openvpn/easy-rsa
+source ./vars
+./clean-all
+./build-ca
+./build-key-server server
+./build-dh
+
+./build-key client
+
+cd /etc/openvpn/easy-rsa/keys
+cp dh2048.pem ca.crt server.crt server.key /etc/openvpn
+
+cd /etc/openvpn/easy-rsa
+./build-key client
+
+Настройка Маршрутизации, включаем маскарадинг
+
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+iptables-save > /etc/sysconfig/iptables
+
+vi /etc/sysctl.conf
+net.ipv4.ip_forward = 1
+
+chkconfig openvpn on
+
+Настройка клиента
+
+client
+dev tun
+proto udp
+remote X.X.X.X 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+comp-lzo
+verb 3
+ca ca.crt
+cert client.crt
+key client.key
+
+

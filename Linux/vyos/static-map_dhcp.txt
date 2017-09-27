@@ -1,0 +1,5 @@
+Назначение статического ip в DHCP
+
+
+set service dhcp-server shared-network-name renv subnet 192.168.122.0/24 static-mapping win10 mac-address '08:00:27:42:D0:31'
+set service dhcp-server shared-network-name renv subnet 192.168.122.0/24 static-mapping win10 ip-address '192.168.122.50' 

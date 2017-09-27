@@ -1,0 +1,11 @@
+useradd -s /bin/bash -m chukhnov
+gpasswd -a chukhnov libvirt
+gpasswd -a chukhnov wheel
+su -l chukhnov
+
+ssh-keygen
+rm -rf .ssh/*
+cat > .ssh/authorized_keys
+ssh-rsa AAAAB2NzaC1yc2EAAAABJQAAAIEAhojAEGhlAbkTxWmTnHni9fYsqMZri3iROEWEU0BQ9fT3FcFRNbq8LHVXcC93TLaO9s66v5QJcL9RFRS/tAmNZRyEwRhludWk/17jTKOJB0xVO9+/aMZF211eKGZzYOSBlqV2VQZtQNXbtyiMJAav9TROPqKWJcc8zrjx3HS2nSs=
+chmod 0600 .ssh/authorized_keys
+

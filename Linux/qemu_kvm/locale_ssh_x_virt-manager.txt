@@ -1,0 +1,17 @@
+При пробросе virt-manager, текст становиться не читабельный, для решения этой задачки нужно поменять Locale
+
+Настройка Локали
+localectl status
+localectl list-locales | grep en_
+localectl set-locale LANG=en_GB.utf8
+
+В настройках ssh 
+X11UseLocalhost no
+X11Forwarding yes
+X11DisplayOffset 10
+
+В Fedora 26 мне пришлость доставлять пакет locale
+dnf install langpacks-en
+
+После повторяем все теже манипуляции.
+
