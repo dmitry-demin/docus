@@ -1,0 +1,44 @@
+- hosts: allowssh
+  user: demin
+  sudo: yes
+
+  tasks:
+    - name: Software install
+      action: "{{ansible_pkg_mgr}} name={{item}} state=present"
+      with_items:
+         - openvpn
+         - psad
+        
+    - name: Setup Openvpn daemon
+      template: src=templates/openvpn_server.j2 dest=/etc/openvpn/server.conf owner=root group=root mode=0644
+       
+    - name: Sertificate ca for openvpn daemon
+      template: src=templates/ca.crt.j2 dest=/etc/openvpn/ca.crt owner=root group=root mode=0600
+
+    - name: Sertificate server.crt for openvpn daemon
+      template: src=templates/server.crt.j2 dest=/etc/openvpn/server.crt owner=root group=root mode=0644
+
+    - name: Sertificate server.key for openvpn daemon
+      template: src=templates/server.key.j2 dest=/etc/openvpn/server.key owner=root group=root mode=0600
+
+    - name: Sertificate dh2048.pem for openvpn daemon
+      template: src=templates/dh2048.pem.j2 dest=/etc/openvpn/dh2048.pem owner=root group=root mode=0644
+
+    - name: Remove firewalled (CentOS)
+      yum: name=firewalld state=absent
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Install iptables-services (CentOS)
+      yum: name=iptables-services state=absent
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: add forwarde to sysctl
+      sysctl: name=net.ipv4.ip_forward value=1 sysctl_set=yes state=present reload=yes
+
+    - name: NTP daemon enable
+      service: name=openvpn enabled=yes
+      
+    - name: NTP daemon enable
+      service: name=openvpn state=restarted
+
+    

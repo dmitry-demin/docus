@@ -1,0 +1,124 @@
+- hosts: allowssh
+  user: root
+ 
+  tasks:
+    - name: Add user demin CentOS
+      action: user name=demin groups=wheel,admin shell=/bin/bash comment="Real User" uid=1000
+      when: ansible_distribution == 'CentOS'
+
+    - name: Add user demin Ubuntu
+      action: user name=demin groups=admin shell=/bin/bash comment="Real User" uid=1000
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Add user ansible CentOS
+      action: user name=ansible groups=wheel,admin shell=/bin/bash comment="Real User" uid=2000
+      when: ansible_distribution == 'CentOS'
+
+    - name: Add user ansible Ubuntu
+      action: user name=ansible groups=admin shell=/bin/bash comment="Real User" uid=2000
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Prepare SSH directory
+      action: file dest=/home/ansible/.ssh state=directory mode=0700
+
+    - name: Add user demin CentOS
+      action: group name=admin state=present  
+
+    - name: Install our key as authorized
+      action: authorized_key user=ansible key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbz5parxHmnJfvMtKmq/T4G3ijvwxWr665yhZYSDaEdU6zI49+hBJICWQ5vewnAt8Y5ajPAbfEdx8tqbxn8xSWWDt7q+T7eT4DRCDN2VjgSR3a9WNyI+6STGPQwJJaoXSdNOTVolBUP4h0b7l1gYnlIxp8m0EAWU3DsMDeojADUnMvRjRWVFFkZahD7RyPN1UArYCYIsHcYnZH7OcoNyaARrEtIHb364RMzz8XCE0oebNI5zelKrT4YmbRiRX6JOmbjCpp0p1O4/1FvKAeq4mlzaAY2bKqj5nKxX+WyMocw88hw7mOz46DlUIcKDoUZGetxPocrxJzIijgh2X2XXb3 ansible@CentOS-73-64-minimal"
+ 
+    - name: Copy private key
+      action: copy src=templates/id_rsa.ansible dest=/home/ansible/.ssh/id_rsa user=ansible mode=0600
+
+    - name: Copy public key
+      action: copy src=templates/id_rsa.ansible.pub dest=/home/ansible/.ssh/id_rsa.pub user=ansible mode=0600
+
+    - name: Prepare SSH directory for user Demin
+      action: file dest=/home/demin/.ssh state=directory mode=0700
+      
+    - name: Install our key as authorized
+      action: authorized_key user=demin key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCSRLBrXrQJsr3WMpHXUTtg/ZLgI6cKMvG7ZryWzHn6LbdzkKv96a1bW71phQW58Ap0FQjabjNQQrJXwlnk8wg3B2BGg1ajxQomHuf4Y7q7wDF031fvef4eyteDlSnyFhbuIOr6sfOnI1ZoTGBK2x8giSJgpd1hx8yE21KUh7IkAa/ee+L0ahGYsUYyE/VKGPjTL5pJRzm4NTsv+8fhFIm5BKGg59fkoeFk7PBbAT9fA7OCHisiMrQKs2EyVwyLhDHlf7SlHhbJ/yIb87SPDX/fkKREYIafZWm/HP2kSPkM+2I5i3GagbQpKhrIqZY5vuby4bYxXmxaI+AiVVU31x0Z demin@wks01-lnx-msk"
+ 
+    - name: Copy private key
+      action: copy src=templates/id_rsa.demin dest=/home/demin/.ssh/id_rsa user=demin mode=0600
+
+    - name: Copy public key
+      action: copy src=templates/id_rsa.demin.pub dest=/home/demin/.ssh/id_rsa.pub user=demin mode=0600
+      
+    - name: Add EPEL repo
+      yum: name=http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-10.noarch.rpm
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+ 
+    - name: Add Remi repo
+      yum: name=http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+       
+    - name: Add EPEL repo
+      yum: name=http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+ 
+    - name: Add Remi repo
+      yum: name=http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+       
+    - name: Software install
+      action: "{{ansible_pkg_mgr}} name={{item}} state=present"
+      with_items:
+        - atop 
+        - nano 
+        - wget 
+        - vim
+ 
+    - name: Install ntsysv package (CentOS)
+      yum: name=ntsysv state=latest
+      when: ansible_distribution == 'CentOS'
+ 
+    - name: Install libselinux-python package (CentOS)
+      yum: name=libselinux-python state=latest
+      when: ansible_distribution == 'CentOS'
+ 
+    - name: Install bash-completion.noarch package (CentOS)
+      yum: name=bash-completion state=latest
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+    
+    - name: Install bash-completion-extras.noarch package (CentOS)
+      yum: name=bash-completion-extras.noarch state=latest
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Sourses File-Upgrade (Ubuntu)
+      template: src=templates/source.list.j2 dest=/etc/apt/source.list owner=root group=root mode=0600
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Dist Update Apt
+      apt: update_cache=yes upgrade=dist dpkg_options='force-confold,force-confdef'
+      when: ansible_distribution == 'Ubuntu'
+            
+    - name: Install ntp-doc package (Ubuntu)
+      portage: name=ntp-doc state=latest
+      when: ansible_distribution == 'Ubuntu'
+         
+    - name: NTP daemon enable
+      service: name=ntpdate enabled=yes
+    
+    - name: NTP daemon enable
+      service: name=ntpd enabled=yes
+    
+    - name: Setup NTP daemon
+      template: src=templates/ntpdate.j2 dest=/etc/ntp.conf owner=root group=root mode=0644
+       
+    - name: NTP daemon restart
+      service: name=ntpdate state=restarted
+       
+    - name: Disable SELinux 
+      selinux: state=disabled
+      when: ansible_distribution == 'CentOS'
+     
+    - name: Configure SSH daemon
+      template: src=templates/sshd_config.j2 dest=/etc/ssh/sshd_config owner=root group=root mode=0600
+      
+    - name: Setup hosts.allow 
+      template: src=templates/hosts.allow.j2 dest=/etc/hosts.allow owner=root group=root mode=0644
+
+    - name: Setup hosts.deny
+      template: src=templates/hosts.deny.j2 dest=/etc/hosts.deny owner=root group=root mode=0644
+     

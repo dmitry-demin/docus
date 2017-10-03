@@ -1,0 +1,25 @@
+- hosts: allowssh
+  user: root
+ 
+  tasks:
+  - name: add wheel to sudoers
+    lineinfile: dest=/etc/sudoers
+                regexp='^'
+                insertafter=EOF
+                line="%wheel ALL=(ALL) NOPASSWD:ALL\n"
+                state=present
+               
+  - name: add admin to sudoers
+    lineinfile: dest=/etc/sudoers
+                regexp='^'
+                insertafter=EOF
+                line='%admin ALL=(ALL) NOPASSWD:ALL'
+                state=present 
+
+  - name: sshd daemon restart
+    service: name=sshd state=restarted
+    when: ansible_distribution == 'Centos'
+ 
+  - name: ssh daemon restart
+    service: name=ssh state=restarted
+    when: ansible_distribution == 'Ubuntu'
