@@ -1,5 +1,5 @@
-- hosts: allowssh
-  user: demin
+- hosts: all
+  user: root
   sudo: yes
 
   tasks:
@@ -29,16 +29,16 @@
       when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
 
     - name: Install iptables-services (CentOS)
-      yum: name=iptables-services state=absent
+      yum: name=iptables-services state=latest
       when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
 
     - name: add forwarde to sysctl
       sysctl: name=net.ipv4.ip_forward value=1 sysctl_set=yes state=present reload=yes
 
-    - name: NTP daemon enable
+    - name: openvpn daemon enable
       service: name=openvpn enabled=yes
       
-    - name: NTP daemon enable
+    - name: openvpn daemon restarted
       service: name=openvpn state=restarted
 
     

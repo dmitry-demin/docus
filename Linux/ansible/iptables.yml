@@ -1,0 +1,15 @@
+- hosts: allowssh
+  user: root
+
+  tasks:
+    - name: add forwarde to sysctl
+      sysctl: name=net.ipv4.ip_forward value=1 sysctl_set=yes state=present reload=yes
+ 
+    - name: Setup iptables 
+      template: src=templates/iptables.j2 dest=/etc/sysconfig/iptables owner=root group=root mode=0600
+
+    - name: Iptables daemon enable
+      service: name=iptables enabled=yes
+      
+    - name: Iptables daemon restarted
+      service: name=iptables state=restarted

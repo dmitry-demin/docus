@@ -1,0 +1,56 @@
+- hosts: all
+  user: root
+
+ 
+  tasks:
+    - name: Add user demin CentOS
+      action: user name=demin groups=wheel,admin shell=/bin/bash comment="Real User" uid=1000
+      when: ansible_distribution == 'CentOS'
+
+    - name: Add user demin Ubuntu
+      action: user name=demin groups=admin shell=/bin/bash comment="Real User" uid=1000
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Add user ansible CentOS
+      action: user name=ansible groups=wheel,admin shell=/bin/bash comment="Real User" uid=2000
+      when: ansible_distribution == 'CentOS'
+
+    - name: Add user ansible Ubuntu
+      action: user name=ansible groups=admin shell=/bin/bash comment="Real User" uid=2000
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Prepare SSH directory
+      action: file dest=/home/ansible/.ssh state=directory mode=0700
+
+    - name: Add user demin CentOS
+      action: group name=admin state=present  
+
+    - name: Install our key as authorized
+      action: authorized_key user=ansible key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDbz5parxHmnJfvMtKmq/T4G3ijvwxWr665yhZYSDaEdU6zI49+hBJICWQ5vewnAt8Y5ajPAbfEdx8tqbxn8xSWWDt7q+T7eT4DRCDN2VjgSR3a9WNyI+6STGPQwJJaoXSdNOTVolBUP4h0b7l1gYnlIxp8m0EAWU3DsMDeojADUnMvRjRWVFFkZahD7RyPN1UArYCYIsHcYnZH7OcoNyaARrEtIHb364RMzz8XCE0oebNI5zelKrT4YmbRiRX6JOmbjCpp0p1O4/1FvKAeq4mlzaAY2bKqj5nKxX+WyMocw88hw7mOz46DlUIcKDoUZGetxPocrxJzIijgh2X2XXb3 ansible@CentOS-73-64-minimal"
+ 
+    - name: Copy private key
+      action: copy src=templates/id_rsa.ansible dest=/home/ansible/.ssh/id_rsa user=ansible mode=0600
+
+    - name: Copy public key
+      action: copy src=templates/id_rsa.ansible.pub dest=/home/ansible/.ssh/id_rsa.pub user=ansible mode=0600
+
+    - name: Prepare SSH directory for user Demin
+      action: file dest=/home/demin/.ssh state=directory mode=0700
+      
+    - name: Install our key as authorized
+      action: authorized_key user=demin key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCSRLBrXrQJsr3WMpHXUTtg/ZLgI6cKMvG7ZryWzHn6LbdzkKv96a1bW71phQW58Ap0FQjabjNQQrJXwlnk8wg3B2BGg1ajxQomHuf4Y7q7wDF031fvef4eyteDlSnyFhbuIOr6sfOnI1ZoTGBK2x8giSJgpd1hx8yE21KUh7IkAa/ee+L0ahGYsUYyE/VKGPjTL5pJRzm4NTsv+8fhFIm5BKGg59fkoeFk7PBbAT9fA7OCHisiMrQKs2EyVwyLhDHlf7SlHhbJ/yIb87SPDX/fkKREYIafZWm/HP2kSPkM+2I5i3GagbQpKhrIqZY5vuby4bYxXmxaI+AiVVU31x0Z demin@wks01-lnx-msk"
+ 
+    - name: Copy private key
+      action: copy src=templates/id_rsa.demin dest=/home/demin/.ssh/id_rsa user=demin mode=0600
+
+    - name: Copy public key
+      action: copy src=templates/id_rsa.demin.pub dest=/home/demin/.ssh/id_rsa.pub user=demin mode=0600
+      
+    - name: Configure SSH daemon
+      template: src=templates/sshd_config.j2 dest=/etc/ssh/sshd_config owner=root group=root mode=0600
+      
+    - name: Setup hosts.allow 
+      template: src=templates/hosts.allow.j2 dest=/etc/hosts.allow owner=root group=root mode=0644
+
+    - name: Setup hosts.deny
+      template: src=templates/hosts.deny.j2 dest=/etc/hosts.deny owner=root group=root mode=0644

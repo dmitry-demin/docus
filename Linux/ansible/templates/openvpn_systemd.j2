@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenVPN Server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/openvpn.pid
+ExecStart=/usr/sbin/openvpn --daemon --writepid /var/run/openvpn.pid --cd /etc/openvpn/ --config server.conf
+
+[Install]
+WantedBy=multi-user.target 
