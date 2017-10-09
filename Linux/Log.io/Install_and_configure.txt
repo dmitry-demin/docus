@@ -1,0 +1,185 @@
+ 
+Для установки нам потребуется npm
+
+
+dnf install -y nodejs nodejs-read-pkg.noarch npm 
+
+npm install pm2 -g
+npm install node-gyp
+npm install connect
+
+npm install -g log.io --user "root"
+
+###
+#  Configure log.io
+###
+### Files location log
+/root/.log.io/harvester.conf
+
+exports.config = {
+  nodeName: "sl-kvm-2",    /*Server name (hostname)*/
+  logStreams: {
+    KVM: [
+      "/opt/athena/logs/ath-server-kvm.log"
+    ],
+    AVD: [
+      "/opt/athena/logs/ath-server-avd.log"
+      ],
+    Bridge: [
+    "/opt/athena/logs/ath-bridge.log"
+    ],
+    KPM: [
+    "/opt/athena/logs/ath-server-kpm.log"
+    ],
+    nginx: [
+      "/var/log/nginx/athena.local.access.log",
+      "/var/log/nginx/athena.local.error.log"
+    ],
+    audit: [
+      "/var/log/audit/audit.log"
+      ],
+    messages: [
+    "/var/log/messages"
+    ],
+    secure: [
+    "/var/log/secure"
+    ]
+  },
+
+  server: {
+    host: '0.0.0.0',
+    port: 28777
+  }
+}
+
+### Server log listener
+/root/.log.io/log_server.conf
+
+exports.config = {
+  host: '0.0.0.0',
+  port: 28777
+}
+
+### Web Server listener
+
+xports.config = {
+  host: '0.0.0.0',
+  port: 28778,
+
+  /*
+  // Enable HTTP Basic Authentication
+  auth: {
+    user: "admin",
+    pass: "1234"
+  },
+  */
+
+  /*
+  // Enable HTTPS/SSL
+  ssl: {
+    key: '/path/to/privatekey.pem',
+    cert: '/path/to/certificate.pem'
+  },
+  */
+
+  /*
+  // Restrict access to websocket (socket.io)
+  // Uses socket.io 'origins' syntax
+  restrictSocket: '*:*',
+  */
+
+  /*
+  // Restrict access to http server (express)
+  restrictHTTP: [
+    "192.168.29.39",
+    "10.0.*"
+  ]
+  */
+
+}
+
+Далее, после утановки, настраиваем nginx:
+
+###
+#  Add upstream
+###
+
+nano -w /etc/nginx/conf.d/logs-upstream.conf
+
+pstream logs_app {
+  server     192.168.0.52:28778  fail_timeout=10s;
+}
+
+
+###
+##   Nginx add to site
+###
+
+  location /logs {
+        proxy_pass          http://logs_app/;
+        proxy_set_header Host      $host;
+        proxy_set_header X-Real-IP $remote_addr;
+  }
+
+  location /socket.io {
+        proxy_pass          http://logs_app/socket.io;
+        proxy_set_header Host      $host;
+        proxy_set_header X-Real-IP $remote_addr;
+  }
+
+
+За одно поставил forever
+npm install forever
+  
+И пишем systemd
+[Unit]
+Description=Log.IO Server
+After=syslog.target network.target nginx.service
+
+[Service]
+ExecStart=/usr/bin/forever start --spinSleepTime 100 --minUptime 3000 /usr/bin/log.io-server
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+Type=forking
+StandardOutput=syslog+console
+StandardError=syslog+console
+Restart=on-abort
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target
+
+
+#####
+
+[Unit]
+Description=Log.IO Harvester Server
+After=syslog.target network.target nginx.service
+
+[Service]
+ExecStart=/usr/bin/forever start --spinSleepTime 100 --minUptime 3000 /usr/bin/log.io-harvester
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+Type=forking
+StandardOutput=syslog+console
+StandardError=syslog+console
+Restart=on-abort
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target
+
+
+Далее:
+systemctl daemon-reload
+
+systemctl start logio-harvester.service
+systemctl start logio-server.service
+systemctl enable logio-harvester.service
+systemctl enable logio-server.service
+
+
+
+
