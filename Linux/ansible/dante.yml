@@ -1,0 +1,57 @@
+- hosts: centos
+#  remote_user: demin
+#  become: yes 
+#  become_user: root
+#  become_method: sudo
+ 
+  tasks:
+    - name: Install dante-client package (CentOS 7)
+      yum: name=http://mirror.ghettoforge.org/distributions/gf/el/7/plus/x86_64/dante-1.4.1-176.9.x86_64.rpm state=present
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Install dante-server package (CentOS 7)
+      yum: name=http://mirror.ghettoforge.org/distributions/gf/el/7/plus/x86_64/dante-server-1.4.1-176.9.x86_64.rpm state=present
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Install dante-client package (CentOS 6)
+      yum: name=http://ftp.tu-chemnitz.de/pub/linux/dag/redhat/el6/en/x86_64/rpmforge/RPMS/miniupnpc-1.5-1.el6.rf.x86_64.rpm state=present
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+    - name: Install dante-client package (CentOS 6)
+      yum: name=ftp://rpmfind.net/linux/dag/redhat/el6/en/x86_64/dag/RPMS/dante-1.4.0-1.el6.rf.x86_64.rpm state=present
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+    - name: Install dante-server package (CentOS 6)
+      yum: name=ftp://rpmfind.net/linux/dag/redhat/el6/en/x86_64/dag/RPMS/dante-server-1.4.0-1.el6.rf.x86_64.rpm state=present
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+    - name: Configuration file dante
+      template: src=templates/sockd.j2 dest=/etc/sockd.conf owner=root group=root mode=0644
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '6'
+
+    - name: Configuration file dante for Centos7
+      template: src=templates/sockd_c7.j2 dest=/etc/sockd.conf owner=root group=root mode=0644
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Prepare for C7 directory
+      action: file dest=/var/run/sockd state=directory mode=0755
+      when: ansible_distribution == 'CentOS' and ansible_distribution_major_version == '7'
+
+    - name: Add rule to iptables 
+      template: src=templates/iptables.j2 dest=/etc/sysconfig/iptables owner=root group=root mode=0600
+
+    - name: Iptables daemon enable
+      service: name=iptables enabled=yes
+      
+    - name: Iptables daemon restarted
+      service: name=iptables state=restarted
+
+    - name: Setup hosts.allow 
+      template: src=templates/hosts.allow.j2 dest=/etc/hosts.allow owner=root group=root mode=0644
+
+    - name: Dante-server daemon enable
+      service: name=sockd enabled=yes
+
+    - name: Dante-server daemon restarted
+      service: name=sockd state=restarted
+

@@ -1,0 +1,92 @@
+ 
+Host configure - First run
+
+
+export ANSIBLE_HOST_KEY_CHECKING=False
+
+sudo nano -w /etc/ansible/hosts
+
+###
+#  Add servers
+###
+
+[centos]
+192.252.210.35          ansible_user=root       ansible_ssh_pass=48f9UnvZ8s
+185.203.242.250         ansible_user=root       ansible_ssh_pass=1FkN02oMZnb0
+185.20.185.98           ansible_user=root       ansible_ssh_pass=D9Q3q7hnPouZ
+195.123.211.181         ansible_user=root       ansible_ssh_pass=FoGMm3mHSjsG
+185.202.103.34          ansible_user=root       ansible_ssh_pass=z1Uf8DDrVuqv
+192.252.210.44          ansible_user=root       ansible_ssh_pass=58wkF12xUy
+78.46.246.159           ansible_user=root       ansible_ssh_pass=495NZ6XR5OkF
+192.252.210.45          ansible_user=root       ansible_ssh_pass=RVy5p34o0l
+185.154.12.165          ansible_user=root       ansible_ssh_pass=an1gHO8k0Bl7
+78.47.58.93             ansible_user=root       ansible_ssh_pass=65I3O1b261N5
+185.154.14.46           ansible_user=root       ansible_ssh_pass=wEGl4yY3Amwi
+192.252.210.47          ansible_user=root       ansible_ssh_pass=fAq1sl492D
+78.47.74.67             ansible_user=root       ansible_ssh_pass=5r4RYo5peuZ5
+185.154.14.169          ansible_user=root       ansible_ssh_pass=d3BlI7jBDfVF
+78.46.194.55            ansible_user=root       ansible_ssh_pass=74dIi6UUrhI7
+78.47.75.101            ansible_user=root       ansible_ssh_pass=IPRj3213nI6v
+185.154.12.217          ansible_user=root       ansible_ssh_pass=MJ5DIYH0E9mD
+
+[ubuntu]
+185.20.185.97           ansible_user=root       ansible_ssh_pass=6TgUXt3ZaLok
+185.20.185.106          ansible_user=root       ansible_ssh_pass=GAHjsJt63RlW
+185.20.185.108          ansible_user=root       ansible_ssh_pass=26iqMJ8xbHfu
+185.20.185.109          ansible_user=root       ansible_ssh_pass=0kWLvSZqKlr0
+185.20.185.110          ansible_user=root       ansible_ssh_pass=s0TT8QWbq6Oc
+185.202.103.40          ansible_user=root       ansible_ssh_pass=qaNJrda4UIpK
+185.202.103.43          ansible_user=root       ansible_ssh_pass=D9jJnY7Re7cu
+185.202.103.44          ansible_user=root       ansible_ssh_pass=O98ejw2YwwOV
+185.202.103.45          ansible_user=root       ansible_ssh_pass=DApC5Ser3jvP
+185.20.185.116          ansible_user=root       ansible_ssh_pass=8PrXH6RHlFH6
+185.20.185.117          ansible_user=root       ansible_ssh_pass=1Et9FvgEYeUg
+185.202.103.47          ansible_user=root       ansible_ssh_pass=HlWCV90t3MsH
+
+[proxyserver]
+185.20.185.97           ansible_user=root       ansible_ssh_pass=6TgUXt3ZaLok
+192.252.210.35          ansible_user=root       ansible_ssh_pass=48f9UnvZ8s
+185.203.242.250         ansible_user=root       ansible_ssh_pass=1FkN02oMZnb0
+185.20.185.98           ansible_user=root       ansible_ssh_pass=D9Q3q7hnPouZ
+195.123.211.181         ansible_user=root       ansible_ssh_pass=FoGMm3mHSjsG
+185.202.103.34          ansible_user=root       ansible_ssh_pass=z1Uf8DDrVuqv
+192.252.210.44          ansible_user=root       ansible_ssh_pass=58wkF12xUy
+78.46.246.159           ansible_user=root       ansible_ssh_pass=495NZ6XR5OkF
+192.252.210.45          ansible_user=root       ansible_ssh_pass=RVy5p34o0l
+185.154.12.165          ansible_user=root       ansible_ssh_pass=an1gHO8k0Bl7
+185.20.185.106          ansible_user=root       ansible_ssh_pass=GAHjsJt63RlW
+185.20.185.108          ansible_user=root       ansible_ssh_pass=26iqMJ8xbHfu
+78.47.58.93             ansible_user=root       ansible_ssh_pass=65I3O1b261N5
+185.154.14.46           ansible_user=root       ansible_ssh_pass=wEGl4yY3Amwi
+192.252.210.47          ansible_user=root       ansible_ssh_pass=fAq1sl492D
+185.20.185.109          ansible_user=root       ansible_ssh_pass=0kWLvSZqKlr0
+185.20.185.110          ansible_user=root       ansible_ssh_pass=s0TT8QWbq6Oc
+185.202.103.40          ansible_user=root       ansible_ssh_pass=qaNJrda4UIpK
+78.47.74.67             ansible_user=root       ansible_ssh_pass=5r4RYo5peuZ5
+185.154.14.169          ansible_user=root       ansible_ssh_pass=d3BlI7jBDfVF
+185.202.103.43          ansible_user=root       ansible_ssh_pass=D9jJnY7Re7cu
+185.202.103.44          ansible_user=root       ansible_ssh_pass=O98ejw2YwwOV
+78.46.194.55            ansible_user=root       ansible_ssh_pass=74dIi6UUrhI7
+78.47.75.101            ansible_user=root       ansible_ssh_pass=IPRj3213nI6v
+185.202.103.45          ansible_user=root       ansible_ssh_pass=DApC5Ser3jvP
+185.20.185.116          ansible_user=root       ansible_ssh_pass=8PrXH6RHlFH6
+185.20.185.117          ansible_user=root       ansible_ssh_pass=1Et9FvgEYeUg
+185.202.103.47          ansible_user=root       ansible_ssh_pass=HlWCV90t3MsH
+185.154.12.217          ansible_user=root       ansible_ssh_pass=MJ5DIYH0E9mD
+
+[allowssh]
+185.154.12.217          ansible_user=root       ansible_ssh_pass=MJ5DIYH0E9mD
+78.47.58.93             ansible_user=root       ansible_ssh_pass=65I3O1b261N5
+
+###
+#  Check connect
+###
+
+ansible proxyserver -m command -a "uname -a"
+
+###
+#  Get info aboute os type
+###
+
+ansible proxyserver -m setup -a "filter=ansible_distribution*"
+

@@ -8,30 +8,26 @@ cp /usr/share/doc/openvpn-*/sample/sample-config-files/server.conf /etc/openvpn
 vi /etc/openvpn/server.conf
 
 port 1194
-proto tcp
+proto udp
 dev tun
 ca ca.crt
 cert server.crt
-key server.key
+key server.key  # This file should be kept secret
 dh dh2048.pem
-topology subnet
 server 10.8.0.0 255.255.255.0
 ifconfig-pool-persist ipp.txt
-client-config-dir client
 push "redirect-gateway def1 bypass-dhcp"
-client-to-client
-duplicate-cn
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
 keepalive 10 120
 cipher AES-256-CBC
-comp-lzo
 user nobody
 group nobody
 persist-key
 persist-tun
-status /var/log/openvpn-status.log
-log         /var/log/openvpn.log
-log-append  /var/log/openvpn.log
+status openvpn-status.log
 verb 3
+explicit-exit-notify 1
 
 
 mkdir -p /etc/openvpn/easy-rsa/keys
