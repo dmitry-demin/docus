@@ -1,0 +1,83 @@
+ 
+Поставлена была задача, сделать редирект с iis на nginx.
+
+Если не уставновлен модуль, тогда Web Platform Install - в поиске указать rewrite
+далее перезапустить iis 
+iisreset /restart
+
+После чего в оснастке iis,в глобальных настройках, в модуле Rewrite, создать Parrent:
+
+^Content/noVNC/(.*)$
+а в Conditions
+Condition input: 
+{QUERY_STRING}
+Matches the pattern
+Pattern
+(\w+\.\w+)?(\w+\=)([0-9.]+)\&(\w+\=)(\d+)\&(\w+\=\w+)
+
+И разумеется, проверить, так как сслыка работает для noVNC - то у меня она была следующего типа, как-то так:
+^/Conent/noVNC/vnc_lite.html?host=192.168.0.52&port=6061&password=7gasd89gg7asdgag7sdg8asd9
+
+И в actoin Prorirties
+http://ath-00003.avsw.ru/p{C:5}/vnc_lite.html?{C:6}
+
+где - {C:5} - 6061 (порт);
+      {C:6} - password=7gasd89gg7asdgag7sdg8asd9 (пароль);
+
+Как я понял, {C:1} - это аналог ${1}
+И указываем код ответа, для Redirect type: 301
+
+В nginx пишем правило: 
+
+upstream vnc_app {
+  server     192.168.0.52:6080 fail_timeout=10s;
+  server     192.168.0.52:6081 fail_timeout=10s;
+}
+
+upstream p6080 {
+  server     192.168.0.52:6080 fail_timeout=10s;
+}
+
+upstream p6081 {
+  server     192.168.0.52:6081 fail_timeout=10s;
+}
+
+location /websockify {
+          proxy_http_version 1.1;
+          proxy_pass http://vnc_app/;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+          proxy_buffering off;
+          root /opt/noVNC/;
+          expires -1;
+        }
+
+
+location /p6080/ {
+          proxy_pass http://p6080/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+          proxy_buffering off;
+          root /opt/noVNC/;
+          expires -1;
+       }
+
+
+location /p6081/ {
+          proxy_pass http://p6081/;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_read_timeout 61s;
+          proxy_buffering off;
+          root /opt/noVNC/;
+          expires -1;
+       }
+
+
+После таких манипуляций, работает как изнутри так и снаружи. 
+
+

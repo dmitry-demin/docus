@@ -1,0 +1,275 @@
+www-servers/nginx-1.10.1::gentoo  
+NGINX_MODULES_HTTP="auth_ldap auth_pam auth_request geoip gunzip gzip_static mp4 push_stream spdy sticky stub_status upload_progress upstream_check headers_more addition browser security slice slowfs_cache 
+split_clients ssi sub upstream_ip_hash userid uwsgi xslt access ajp auth_basic autoindex cache_purge charset dav dav_ext degradation echo empty_gif fancyindex fastcgi flv geo gzip image_filter limit_conn 
+limit_req lua map memc memcached metrics mogilefs naxsi proxy random_index realip referer rewrite scgi secure_link lua http2"
+NGINX_MODULES_MAIL="imap pop3 smtp"
+NGINX_MODULES_STREAM="access limit_conn upstream"
+
+
+user nginx nginx;
+worker_processes auto;
+
+error_log /var/log/nginx/error_log info;
+
+events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+}
+
+#worker_rlimit_nofile 200000;
+timer_resolution 100ms;
+worker_priority -5;
+
+http {
+        server_tokens off;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main
+                '$remote_addr - $remote_user [$time_local] '
+                '"$request" $status $bytes_sent '
+                '"$http_referer" "$http_user_agent" '
+                '"$gzip_ratio"';
+
+        client_header_timeout 10m;
+        client_body_timeout 10m;
+        send_timeout 10m;
+        connection_pool_size 256;
+
+        keepalive_timeout 120s;
+        keepalive_requests 1200;
+
+
+        client_header_buffer_size 1k;
+        large_client_header_buffers 8 8k;
+        request_pool_size 4k;
+
+        gzip on;
+        gzip_min_length 1100;
+        gzip_buffers 4 8k;
+        gzip_disable "msie6";
+        gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
+        gzip_comp_level 5;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_http_version 1.1;
+        output_buffers 1 32k;
+        postpone_output 1460;
+        reset_timedout_connection on;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        ignore_invalid_headers on;
+        index index.html index.php;
+
+        include /etc/nginx/conf.d/*.ru;
+        include /etc/nginx/ldap/ldap.conf;
+
+        server {
+                listen 80;
+                server_name localhost;
+                return 444;
+                access_log /var/log/nginx/localhost.access_log main;
+                error_log /var/log/nginx/localhost.error_log info;
+        }
+}
+
+
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/gemotest.ru 
+server {
+                listen 80;
+                server_name gemotest.ru;
+                access_log /var/log/nginx/gemotest.access_log main;
+                error_log /var/log/nginx/gemotest.error_log info;
+    
+
+        location / { 
+        proxy_pass http://185.59.101.30/;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   Host $http_host;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect  off;
+        }
+}
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/gitlab.gemotest.ru 
+server {
+                listen 80;
+                server_name gitlab.gemotest.ru;
+                access_log /var/log/nginx/gitlab.access_log main;
+                error_log /var/log/nginx/gitlab.error_log info;
+                
+                error_page  404 /404.html;
+                error_page  401 /404.html;
+
+        
+
+        location / { 
+        proxy_pass http://gitlab.lab.gemotest.ru;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   Host $http_host;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect  off;
+        allow 192.168.0.0/16;
+        deny all;
+        }
+}
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/mobile.gemotest.ru
+server {
+                listen 80;
+                server_name mobile.gemotest.ru pro.gemotest.ru api2.gemotest.ru passport.gemotest.ru;
+                access_log /var/log/nginx/mobile.access_log main;
+                error_log /var/log/nginx/mobile.error_log info;
+                
+        location / { 
+        proxy_pass http://192.168.110.53/;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   Host $http_host;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect  off;
+        }
+
+}
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/office.gemotest.ru
+proxy_cache_path /var/lib/nginx/cache levels=1:2 keys_zone=office_cache:10m max_size=10g
+                 inactive=60m use_temp_path=off;
+
+#map $request_method $purge_method {
+#    PURGE   1;
+#    default 0;
+#}
+
+
+upstream web {
+                ip_hash;
+                server 192.168.109.228 weight=5 max_fails=2 fail_timeout=20s;
+                server 192.168.110.43 weight=5 max_fails=2 fail_timeout=20s;
+                server 192.168.109.236 weight=5 max_fails=2 fail_timeout=20s;
+                server 192.168.109.60 weight=5 max_fails=2 fail_timeout=20s;
+                server 192.168.109.129 weight=5 max_fails=2 fail_timeout=20s;
+#               server 192.168.108.34 down;
+        }
+
+
+
+server {
+
+        server_name Xxxxxx.gemotest.ru;
+        listen 80;
+        access_log /var/log/nginx/office.access_log main;
+        error_log /var/log/nginx/office.error_log info;
+
+        real_ip_header          X-Real-IP;
+        proxy_set_header        Host            $host;
+        proxy_set_header        X-Real-IP       $remote_addr;
+        proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+        allow all;
+
+
+        location / { 
+        proxy_pass http://web;
+        proxy_ignore_client_abort on;
+#       proxy_cache office_cache;
+        proxy_connect_timeout 180s;
+        proxy_send_timeout 180s;
+        proxy_read_timeout 180s;
+        proxy_cache_revalidate on;
+#        proxy_cache_min_uses 3;
+#        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+#        proxy_cache_lock on;
+        }
+
+        location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|pdf)$ {
+        expires 30d;
+        access_log off;
+        proxy_cache office_cache;
+        proxy_pass http://web;
+        proxy_cache_valid   200 302 30d;
+        proxy_cache_valid   404 1m;
+        }
+
+        location ~* \.(?:css|js)$ {
+        expires 1y;
+        access_log off;
+        proxy_cache office_cache;
+        proxy_pass http://web;
+        proxy_cache_valid   200 302 1y;
+        proxy_cache_valid   404 1m;
+        }
+}
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/office_ssl.gemotest.ru 
+server {
+        server_name oxx.gemotest.ru office;
+        listen 443 ssl;
+        return 301 http://oxx.gemotest.ru$request_uri;
+
+        if ($http_host != "oxx.gemotest.ru") {
+        rewrite ^ http://oXx.gemotest.ru$request_uri permanent;
+        }
+
+        keepalive_timeout   60;
+        ssl_certificate      /etc/nginx/ssl/xxxx.ru.crt;
+        ssl_certificate_key  /etc/nginx/ssl/xxxx.ru.key;
+        ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers  "RC4:HIGH:!aNULL:!MD5:!kEDH";
+
+}
+
+
+
+sl5-web-h2 nginx # cat /etc/nginx/conf.d/uni.gemotest.ru 
+server {
+        listen 80;
+        server_name unix.gemotest.ru;
+  
+        access_log /var/log/nginx/uni.access_log main;
+        error_log /var/log/nginx/uni.error_log info;
+
+#       auth_ldap "Folder";
+#       auth_ldap_servers LDAP1;    
+
+        location /unix {
+        proxy_pass http://unix.gemotest.ru/uni;
+        proxy_set_header Host      $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        }
+
+        location /cache_uni/ {
+        proxy_pass http://192.168.108.27/cache_uni/;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   Host $http_host;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+}
+
+
+sl5-web-h2 nginx # cat /etc/nginx/ldap/ldap.conf
+      auth_ldap_cache_enabled on;
+      auth_ldap_cache_expiration_time 3600000;
+      auth_ldap_cache_size 1000;
+      ldap_server LDAP1 {
+          url ldaps://AD-Controller/DC=lab,DC=gemotest,DC=ru?sAMAccountName?sub?(objectClass=user);
+          binddn "LAB\\Administrator";
+          binddn_passwd "SuperMegaPassW@@rT";
+          group_attribute uniquemember;
+          group_attribute_is_dn on;
+          require valid_user;
+          connect_timeout 5s;
+          bind_timeout 5s;
+          request_timeout 5s;
+          satisfy any;
+          #If you wanna use group, uncomment top:
+          #group_attribute member;
+          #group_attribute_is_dn on;
+          #require group "OU=Departments,OU=XXXX,DC=lab,DC=XXXXX,DC=ru";
+      }
+
+
+
