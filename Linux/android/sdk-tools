@@ -1,0 +1,36 @@
+Download sdk-tools
+
+https://developer.android.com/studio/index.html#downloads
+
+When we are download sdk-tools.zip
+i`m use bcache - /var/lib/libviert/images/
+
+mkdir /var/lib/libviert/images/.sdk-tools
+unzip /hoem/demin/sdk*.zip -d /var/lib/libviert/images/.sdk-tools
+
+Now we are update all ( I`m use old android 
+echo $PATH
+/opt/sdk-tool/tools/bin:/root/perl5/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin )
+
+cd /var/lib/libvirt/images/.sdk-tools/tools/bin/
+./android update sdk --no-ui
+./sdkmanager --update
+./sdkmanager "tools"
+
+./sdkmanager "lldb;2.0" "lldb;2.1" "lldb;2.2" "lldb;2.3" "lldb;3.0" "ndk-bundle" \
+"patcher;v4" "platform-tools" "sources;android-23" "sources;android-22" "sources;android-24"
+
+for i in `./sdkmanager --list | egrep "system-images\;android-'22|23'\;.*arm" | awk {'print$1'}`; do ./sdkmanager ${i}; done
+
+
+/var/lib/libvirt/images/.sdk-tools/tools/bin/avdmanager create avd --name newTest-android-arm-22 --package "system-images;android-22;default;armeabi-v7a"
+./emulator -avd newTest-android-arm-22 -memory 4096 -no-window -no-boot-anim -no-snapshot -verbose -show-kernel -no-audio -gpu guest -qemu -vnc :99
+
+/opt/android-SDK/tools/emulator  -avd de602a1c-23ab-4ec1-8a93-1e58ba65b4b4  -verbose -selinux permissive -no-window -qemu -smp 2 -monitor stdio -net nic,model=virtio -net user -net dump,file=dump.pcap -net user -vnc 0.0.0.0:20
+
+## Check work in console
+adb devices -l
+adb logcat
+if need connect to terminal
+adb shell
+
