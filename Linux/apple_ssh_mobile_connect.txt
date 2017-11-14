@@ -1,0 +1,71 @@
+Установка и настройка утилит для работы с apple устройствами.
+
+Для работы с apple мобильными устройствами нам потребуется установить два пакета usbutils и libusbmuxd-utils.
+Из командной строки ввести sudo yum -y install usbutils libusbmuxd-utils
+Проверить, что устройство работает коректно, для этого подключить мобильный телефон к usb-hub и ввести команду dmesg, в терминальном окне вы увидите, что устройство опеределилось как сетевой интерфейс eth120 пример:
+[263475.387153] usb 1-1.1: new high-speed USB device number 17 using xhci_hcd
+[263475.461763] usb 1-1.1: New USB device found, idVendor=05ac, idProduct=12ab
+[263475.461765] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[263475.461766] usb 1-1.1: Product: iPad
+[263475.461767] usb 1-1.1: Manufacturer: Apple Inc.
+[263475.461768] usb 1-1.1: SerialNumber: 9063afac3889052812063bc5d09adbc02fb4e0b7
+[263475.670628] ipheth 1-1.1:4.2: Apple iPhone USB Ethernet device attached
+[263475.782254] ipheth 1-1.1:4.2 eth120: renamed from eth0
+
+Далее, Вы можете посмотреть на какой именно шине подключен usb-интерфейс, для этого требуется в терминальном окне ввести командну lsusb:
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 005: ID 046d:c077 Logitech, Inc. M105 Optical Mouse
+Bus 001 Device 003: ID 046d:c31c Logitech, Inc. Keyboard K120
+Bus 001 Device 007: ID 05e3:0608 Genesys Logic, Inc. Hub
+Bus 001 Device 017: ID 05ac:12ab Apple, Inc. iPad 4/Mini1
+Bus 001 Device 014: ID 214b:7250  
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+
+Для того, что бы физическое устройство смогло получать данные, мы восполльзуемся модулем iproxy из ранее установленного пакета libusbmuxd-utils.
+iproxy 2349 22 &
+где, 2349 - назначенный порт физического компьютера
+     22 - порт мобильного устройтва
+     & - backgroung
+после чего, мы попытаемся подключится к мобильному устройству.
+ssh root@localhost -p 2349 -v
+
+OpenSSH_7.4p1, OpenSSL 1.0.2m  2 Nov 2017
+debug1: Reading configuration data /etc/ssh/ssh_config
+debug1: Connecting to localhost [127.0.0.1] port 2349.
+debug1: Connection established.
+accepted connection, fd = 4
+waiting for connection
+Number of available devices == 1
+Requesting connecion to device handle == 1 (serial: 9063afac3889052812063bc5d09adbc02fb4e0b7), port 22
+run_ctos_loop: fd = 4
+run_stoc_loop: fd = 4
+debug1: Remote protocol version 2.0, remote software version OpenSSH_6.7
+debug1: match: OpenSSH_6.7 pat OpenSSH* compat 0x04000000
+debug1: Authenticating to localhost:2349 as 'root'
+debug1: SSH2_MSG_KEXINIT sent
+debug1: SSH2_MSG_KEXINIT received
+debug1: kex: algorithm: curve25519-sha256@libssh.org
+debug1: kex: host key algorithm: ssh-rsa
+debug1: kex: server->client cipher: chacha20-poly1305@openssh.com MAC: <implicit> compression: none
+debug1: kex: client->server cipher: chacha20-poly1305@openssh.com MAC: <implicit> compression: none
+debug1: expecting SSH2_MSG_KEX_ECDH_REPLY
+debug1: Server host key: ssh-rsa SHA256:A1iQZsY2zjbqZSrCm+spG8e6kjnpEEFmrs9hBZWTybI
+debug1: Host '[localhost]:2349' is known and matches the RSA host key.
+debug1: rekey after 134217728 blocks
+debug1: Next authentication method: publickey
+debug1: Authentication succeeded (publickey).
+Authenticated to localhost ([127.0.0.1]:2349).
+debug1: channel 0: new [client-session]
+debug1: Requesting no-more-sessions@openssh.com
+debug1: Entering interactive session.
+debug1: pledge: exec
+Warning: untrusted X11 forwarding setup failed: xauth key data not generated
+\h:\w \u$ 
+
+На данном этапе проверка мобильного устройства окончено, мы смогли подключится к телефону по средствам ssh.
+
+
+
+
+
+
