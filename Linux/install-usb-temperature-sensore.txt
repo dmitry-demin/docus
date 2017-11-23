@@ -1,0 +1,148 @@
+Configure USB-Temmper Sensor
+
+yum -y install usbutils.x86_64
+
+[root@sl-kvm1 temper]# lsusb
+Bus 002 Device 002: ID 8087:8002 Intel Corp. 
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 002: ID 8087:800a Intel Corp. 
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 004: ID 0c45:7401 Microdia TEMPer Temperature Sensor
+Bus 003 Device 002: ID 0b39:1001 Omnidirectional Control Technology, Inc. 
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+
+Собственно вот он 0c45:7401 Microdia TEMPer Temperature Sensor
+
+Далее нам потребуется установить и настроить python модули.
+
+yum -y install python-setuptools.noarch
+yum -y install pyusb.noarch
+
+git clone https://github.com/padelt/temper-python.git /opt/temper
+
+[root@sl-kvm1 temper]# python setup.py install
+Traceback (most recent call last):
+  File "setup.py", line 10, in <module>
+    long_description=open('README.md', encoding='utf-8').read(),
+TypeError: 'encoding' is an invalid keyword argument for this function
+
+Чесно говоря не стал заморачиваться, переписывать под 2.7, а закоментировал:
+[root@sl-kvm1 temper]# cat setup.py 
+from setuptools import setup
+
+setup(
+    name='temperusb',
+    author='Philipp Adelt',
+    author_email='autosort-github@philipp.adelt.net ',
+    url='https://github.com/padelt/temper-python',
+    version='1.5.3',
+    description='Reads temperature from TEMPerV1 devices (USB 0c45:7401)',
+#    long_description=open('README.md', encoding='utf-8').read(),
+    packages=['temperusb'],
+    install_requires=[
+        'pyusb>=1.0.0rc1',
+    ],
+    entry_points={
+        'console_scripts': [
+            'temper-poll = temperusb.cli:main',
+            'temper-snmp = temperusb.snmp:main'
+        ]
+    },
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Console',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+    ],
+)
+
+[root@sl-kvm1 temper]# python setup.py install
+
+Все это дело установилось в директорию /usr/bin
+Запустим:
+/usr/bin/temper-poll
+
+[root@sl-kvm1 temper]# /usr/bin/temper-poll 
+Found 1 devices
+Device #0: 23.1°C 73.5°F 
+[root@sl-kvm1 temper]# 
+
+Собсвтенно добильсь, желаемого результата.
+
+
+Далее я написал говняшку:
+
+#!/bin/bash
+
+_temp=`/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'} | egrep -o '[0-9]{2}'`
+_t3="30"
+_t4="40"
+_t5="43"
+_send="1"
+
+_sutdown_server="192.168.0.53
+192.168.10.2
+192.168.10.201
+192.168.10.200
+"
+
+_run=`ps aux | grep tempirature-sensore.sh | grep -v grep | wc -l`
+if [ `echo ${_run}` -eq 2 ]
+ then
+
+  while true
+  do
+        if [ `echo ${_temp}` -ge `echo ${_t3}` -a  `echo ${_temp}` -le `echo 40` ]
+        then
+                _send=$(($_send + 1))
+                if [ `echo $_send` -le 10 ]
+                then
+                _send="$_send"
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило ${_t3} градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.chukhnov@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило 30 градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.savelyeva@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило 30 градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore office@avsw.ru
+                fi
+        elif [ `echo ${_temp}` -ge `echo ${_t4}` -a `echo ${_temp}` -le `echo 43` ]
+        then
+                _send=$(($_send + 1))
+                if [ `echo $_send` -le 10 ]
+                then
+                _send="$_send"
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило 40 градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.chukhnov@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило 40 градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.savelyeva@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной привысило 40 градусов" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore office@avsw.ru
+                fi
+        elif [ `echo ${_temp}` -ge ${_t5} ]
+        then
+                _send=$(($_send + 1))
+                if [ `echo $_send` -le 3 ]
+                then
+                _send="$_send"
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.chukhnov@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore a.savelyeva@avsw.ru
+                        echo "Сработал датчик температуры, в серверной сейчас `/usr/bin/temper-poll | egrep 'Device #0:' | awk {'print$3'}`" | mailx -v -s "Температура в серверной" -S smtp="smtp.avsw.ru" -S smtp-auth=login -S smtp-auth-user="ups@avsw.ru" -S smtp-auth-password="De8msuWf" -S ssl-verify=ignore office@avsw.ru
+                        if [ `echo $_send` -eq 3 ]
+                        then
+                                for i in $_sutdown_server
+                                do
+                                if [ ! `echo ${i} | egrep -c '192.168.10.200'` -eq "1" -o `echo ${i} | egrep -c '192.168.10.201'` -eq "1" ]
+                                then
+                                sudo -u udown /bin/bash -c "ssh -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no udown@$i -t sudo wall 'Server going to down'"
+                                sudo -u udown /bin/bash -c "ssh -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no udown@$i -t sudo poweroff
+                                else
+                                sudo -u udown /bin/bash -c "ssh -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o Port=2222 udown@$i -t sudo wall 'Server going to down'"
+                                sudo -u udown /bin/bash -c "ssh -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o Port=2222 udown@$i -t sudo poweroff"
+                                fi
+                                wall "Server going to down"
+                                poweroff
+                                done
+                        fi
+                fi
+        fi
+        sleep 10
+  done
+ else
+        exit 1
+fi

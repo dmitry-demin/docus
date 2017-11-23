@@ -15,3 +15,9 @@ dnf install langpacks-en
 
 После повторяем все теже манипуляции.
 
+
+
+Испавляем проблему с virt-manager
+
+yum install liberation-sans-fonts
+yum -y install xorg-x11-xauth
