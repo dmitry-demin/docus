@@ -1,0 +1,24 @@
+Монтирование img KVM
+
+yum -y install libguestfs-tools
+
+guestmount -a /home/virt/fly140.local.img -m /dev/sda1 /mnt
+
+Где - /home/virt/fly140.local.img -- Образ VM
+    - /dev/sda1 		  -- Монтированный раздел (в данном случае boot) 
+    - /mnt			  -- Куда монтированить
+
+Если не знаем где корень:
+guestmount -a /home/virt/fly140.local.img -m /dev/sda2 /mnt
+libguestfs: error: mount_options: /dev/sda2 on / (options: ''): mount: unknown filesystem type 'LVM2_member'
+guestmount: '/dev/sda2' could not be mounted.
+guestmount: Did you mean to mount one of these filesystems?
+guestmount:     /dev/sda1 (ext4)
+guestmount:     /dev/VolGroup/LogVol00 (ext4)
+guestmount:     /dev/VolGroup/LogVol01 (swap)
+
+
+Аналогично LVM:
+guestmount -a /home/virt/fly140.local.img -m /dev/VolGroup/LogVol00 /mnt
+
+
