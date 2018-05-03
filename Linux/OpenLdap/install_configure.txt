@@ -1,0 +1,527 @@
+Установка и настройка OpenLdap и LdapAdmin
+
+Установка
+
+yum -y install openldap-server openldap-clients 
+yum -y install /root/LdapAdmin-1.1.1-106.gbc2e9a9.x86_64.rpm
+
+Назначаем пароль:
+
+slappasswd
+
+New password: 
+Re-enter new password: 
+{SSHA}n1gVpF8SbRuWMfuTR5BuGXOzWtl+quoY
+
+Зайдем в насторойки:
+
+cd /etc/openldap/slapd.d/cn\=config
+
+Отредактируем настройки и добавим пароль
+
+vi olcDatabase\=\{2\}bdb.ldif
+
+Изменим имя домена:
+
+olcSuffix: dc=%DOMAIN%,dc=com
+olcRootDN: cn=Manager,dc=%DOMAIN%,dc=com
+
+добавим пароль, можно строчкой ниже:
+
+olcRootPW: {SSHA}n1gVpF8SbRuWMfuTR5BuGXOzWtl+quoY
+
+В самом низу, предоставим права доступа на запись root, остальным только чтение:
+
+olcAccess: {0}to attrs=userPassword by self write by dn.base="cn=Manager,dc=%DOMAIN%,dc=com" write by anonymous auth by * none
+olcAccess: {1}to * by dn.base="cn=Manager,dc=%DOMAIN%,dc=com" write by self write by * read
+
+Отредактируем подключение:
+
+vi olcDatabase\=\{1\}monitor.ldif
+
+olcAccess: {0}to *  by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=exter
+ nal,cn=auth" read  by dn.base="cn=Manager,dc=%DOMAIN%,dc=com" read  by * n
+ one
+
+Заведем домен:
+cd /tmp
+
+vi %DOMAIN%.ldif
+
+dn: dc=%DOMAIN%,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: %DOMAIN%
+o : %DOMAIN%
+
+Создадим контейнер:
+
+vi users.ldif
+
+dn: ou=Users,dc=%DOMAIN%,dc=com
+objectClass: organizationalUnit
+ou: Users
+
+Заведем первого пользователя:
+
+vi demin.ldif
+
+dn: cn=Demin,ou=Users,dc=%DOMAIN%,dc=com
+cn: Demin
+sn: Dmitry
+objectClass: inetOrgPerson
+userPassword: 1
+uid: demin
+
+Запустим LDAP:
+
+/etc/init.d/slapd start
+
+Проверяются конфигурационные файлы для slapd: [ВНИМАНИЕ!]
+5ae9aaaa ldif_read_file: checksum error on "/etc/openldap/slapd.d/cn=config/olcDatabase={1}monitor.ldif" 
+5ae9aaaa ldif_read_file: checksum error on "/etc/openldap/slapd.d/cn=config/olcDatabase={2}bdb.ldif" 
+config file testing succeeded
+Запускается slapd:
+
+Добавим в LDAP записи.
+
+ldapadd -f %DOMAIN%.ldif -D cn=Manager,dc=%DOMAIN%,dc=com -w 12345678
+ldapadd -f users.ldif -D cn=Manager,dc=%DOMAIN%,dc=com -w 12345678
+ldapadd -f demin.ldif -D cn=Manager,dc=%DOMAIN%,dc=com -w 12345678
+
+Проверим, что все работает:
+
+ldapsearch -x -LLL -b dc=%DOMAIN%,dc=com
+
+dn: dc=%DOMAIN%,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: %DOMAIN%
+o: %DOMAIN%
+
+dn: ou=Users,dc=%DOMAIN%,dc=com
+objectClass: organizationalUnit
+ou: Users
+
+dn: cn=Demin,ou=Users,dc=%DOMAIN%,dc=com
+cn: Demin
+sn: Dmitry
+objectClass: inetOrgPerson
+uid: demin
+
+Останавливаем ldap.
+
+/etc/init.d/slapd stop
+
+Переносим настройки и создаем конфигурационный файл:
+
+mv /etc/openldap/slapd.d /etc/openldap/slapd.d.origin
+
+Добавим пару-троек схем:
+cat > /etc/openldap/schema/security-attr.schema
+
+# New attribute definitions:
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.90
+        NAME 'personLabels'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{1024} )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.91
+        NAME 'personFlash'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.92
+        NAME 'personPrn'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.93
+        NAME 'personCDrom'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.94
+        NAME 'personAccess'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.101
+        NAME 'personKiosk'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+cat > /etc/openldap/schema/others-attr.schema
+
+# New attribute definitions:
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.110
+        NAME 'function'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.111
+        NAME 'division'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.112
+        NAME 'subdivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.113
+        NAME 'mailDirectory'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.114
+        NAME 'mailServer'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.115
+        NAME 'availableMailList'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.116
+        NAME 'permission'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.117
+        NAME 'userList'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.118
+        NAME 'network'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.119
+        NAME 'mailPass'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.120
+        NAME 'idDivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.121
+        NAME 'idSubdivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.122
+        NAME 'idFunction'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.123
+        NAME 'idUser'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.124
+        NAME 'label'
+        EQUALITY caseIgnoreIA5Match
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255}
+        SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.125
+        NAME 'mtaTransport'
+        EQUALITY caseIgnoreIA5Match
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255}
+        SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.126
+        NAME 'groupAccessRight'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.127
+        NAME 'removed'
+        EQUALITY booleanMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 
+        SINGLE-VALUE)
+
+cat > /etc/openldap/schema/security.schema
+
+objectClass     ( 1.3.6.1.4.1.4203.666.1.100
+    NAME 'Security'
+        DESC 'Some security option'
+    SUP top AUXILIARY
+    MAY  ( personLabels )
+        )
+
+objectClass     ( 1.3.6.1.4.1.4203.666.1.101
+    NAME 'SecurityDevices'
+        DESC 'Differen USB device'
+    SUP top AUXILIARY
+    MAY  ( personFlash $ personPrn $ personCDrom )
+       )
+
+objectClass     ( 1.3.6.1.4.1.4203.666.2.102
+    NAME 'Kiosk'
+    DESC 'Kiosk mode for user'
+    SUP top AUXILIARY
+    MAY  ( personKiosk )
+    )
+
+cat > /etc/openldap/schema/others.schema
+
+# New attribute definitions:
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.110
+        NAME 'function'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.111
+        NAME 'division'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.112
+        NAME 'subdivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.113
+        NAME 'mailDirectory'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.114
+        NAME 'mailServer'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.115
+        NAME 'availableMailList'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.116
+        NAME 'permission'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.117
+        NAME 'userList'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.118
+        NAME 'network'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.119
+        NAME 'mailPass'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.120
+        NAME 'idDivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.121
+        NAME 'idSubdivision'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.122
+        NAME 'idFunction'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.123
+        NAME 'idUser'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.124
+        NAME 'label'
+        EQUALITY caseIgnoreIA5Match
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255}
+        SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.125
+        NAME 'mtaTransport'
+        EQUALITY caseIgnoreIA5Match
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{255}
+        SINGLE-VALUE
+ )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.126
+        NAME 'groupAccessRight'
+        EQUALITY caseIgnoreMatch
+        SUBSTR caseIgnoreSubstringsMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+
+attributetype ( 1.3.6.1.4.1.4203.666.1.127
+        NAME 'removed'
+        EQUALITY booleanMatch
+        SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 
+        SINGLE-VALUE)
+
+Создание конфигурационного файла:
+
+touch /etc/openldap/slapd.conf
+
+include    /etc/openldap/schema/core.schema
+include    /etc/openldap/schema/cosine.schema
+include    /etc/openldap/schema/inetorgperson.schema
+include    /etc/openldap/schema/nis.schema
+include    /etc/openldap/schema/ppolicy.schema
+include    /etc/openldap/schema/security-attr.schema
+include    /etc/openldap/schema/others-attr.schema
+include    /etc/openldap/schema/security.schema
+include    /etc/openldap/schema/others.schema
+
+allow bind_v2
+pidfile         /var/run/openldap/slapd.pid
+argsfile        /var/run/openldap/slapd.args
+sizelimit unlimited
+
+#serverID 0
+loglevel 393
+logfile   /var/log/slapd/slapd.log
+
+## Add modules
+moduleload ppolicy.la
+moduleload syncprov.la
+
+access to *
+        by dn.base="cn=Manager,dc=%DOMAIN%,dc=com" write
+        by anonymous read
+database config
+database monitor
+
+database bdb
+suffix "dc=%DOMAIN%,dc=com" 
+checkpoint 32 30
+
+rootdn "cn=Manager,dc=%DOMAIN%,dc=com" 
+rootpw "{SSHA}j7xACRHYo6NvXSG+cOzUg71Y0qpuyQqK" 
+directory "/var/lib/ldap" 
+
+index objectClass                       eq,pres
+index ou,cn,mail,surname,givenname      eq,pres,sub
+index uidNumber,gidNumber,loginShell    eq,pres
+index uid,memberUid                     eq,pres,sub
+index nisMapName,nisMapEntry            eq,pres,sub
+
+overlay ppolicy
+overlay syncprov
+syncprov-checkpoint 100 10
+
+Проверяем на наличие ошибок:
+slaptest -v -d 1 -f /etc/openldap/slapd.conf
+
+При получении данной ошибки:
+
+5ae9d65b null_back_initialize: initialize null backend
+5ae9d65b /etc/openldap/schema/others.schema: line 7 attributetype: Duplicate attributeType: "1.3.6.1.4.1.4203.666.1.111" 
+slaptest: bad configuration file!
+
+OpenLdap работать будет, но правильней будет разумеется убрать дубли описания одной и той же схемы.
+Пока этим не занимался.
+
+Запускаем сервис:
+
+/etc/init.d/slapd start
+Запускается slapd:                                         [  OK  ]
+
+Заведем учетную запись, для этого я писал сценарий для заведения:
+
+READ="testuser testadmin" 
+PASSW="8asdga78sd78gas8dfasfd5asfd5fas79dfa8sdga9sgd9gas97dgas79dgas8gf76asgd6asgdgasgd-a[dajsd9[9asdj0jas09dasdg6as7dfas7fd" 
+OU="ou=Users,dc=%DOMAIN%,dc=com" 
+
+KEY='asdqwezxczxcasdasqweeqw'
+# где key - это права доступа администратора в шифрованном виде.
+
+for i in ${READ}
+        do
+        ldapsearch -w $PASSW -x -h $HOST -D "cn=Manager,dc=%DOMAIN%,dc=com" -b $OU uid=${i} | egrep -o 'dn:.*'
+        if [ "$?" -eq 1 ]
+         then
+         SUM=`ldapsearch -w $PASSW -x -h $HOST -D "cn=Manager,dc=%DOMAIN%,dc=com" -b $OU | egrep 'uidNumber' | sort -n -k2 | tail -n1 | cut -d ' ' -f 2`
+echo " 
+dn: uid=${i},$OU
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: Security
+objectClass: orgstruct
+objectClass: mail
+objectClass: Kiosk
+cn: ${i}
+sn: $(uuidgen)
+uid: ${i}
+uidNumber: $(( $SUM+1 ))
+gidNumber: 0
+homeDirectory: /home/${i}
+loginShell: /bin/bash
+gecos: ${i}
+userPassword: 1
+PersonLabels: Users
+permission: $(echo ${KEY})
+" > ${i}.ldif
+
+ldapadd -x -w$PASSW -D "cn=Manager,dc=%DOMAIN%,dc=com" -f ${i}.ldif
+rm ${i}.ldif
+
+Далее, на flygres завести данную учетную запись. 
