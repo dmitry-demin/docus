@@ -1,0 +1,119 @@
+yum -y install openldap openldap-clients
+
+echo <<ENDLDAP >> /etc/openldap/ldap.conf
+BASE dc=%DOMAIN%,dc=com
+URI ldap://10.1.137.176
+ENDLDAP
+
+Проверям:
+
+ldapseach -x | egrep '^uid\:'
+
+uid: test1
+uid: prok
+uid: a.arseniev
+uid: testuser
+uid: testadmin
+uid: demin2
+uid: demin3
+<pre>
+
+</pre>
+yum -y install nss-pam-ldapd
+
+egrep -v '^$|^#' /etc/pam_ldap.conf
+
+base dc=%DOMAIN%,dc=com
+uri ldap://10.1.137.176/
+ldap_version 3
+port 389
+scope sub
+timelimit 30
+bind_timelimit 30
+ssl no
+pam_password md5
+
+Правим /etc/nsswitch.conf
+egrep -v '^$|^#' /etc/nsswitch.conf
+
+passwd:     files ldap
+shadow:     files ldap
+group:      files ldap
+hosts:      files dns
+bootparams: nisplus [NOTFOUND=return] files
+ethers:     files
+netmasks:   files
+networks:   files
+protocols:  files
+rpc:        files
+services:   files
+netgroup:   ldap nisplus
+publickey:  nisplus
+automount:  files ldap nisplus
+aliases:    files nisplus
+
+Добавляю ldap.so в pam.d
+
+egrep 'ldap.so' /etc/pam.d/*
+/etc/pam.d/password-auth:auth        sufficient    pam_ldap.so use_first_pass
+/etc/pam.d/password-auth:account     [default=bad success=ok user_unknown=ignore] pam_ldap.so
+/etc/pam.d/password-auth:password    sufficient    pam_ldap.so use_authtok
+/etc/pam.d/password-auth:session     optional      pam_ldap.so
+/etc/pam.d/password-auth-ac:auth        sufficient    pam_ldap.so use_first_pass
+/etc/pam.d/password-auth-ac:account     [default=bad success=ok user_unknown=ignore] pam_ldap.so
+/etc/pam.d/password-auth-ac:password    sufficient    pam_ldap.so use_authtok
+/etc/pam.d/password-auth-ac:session     optional      pam_ldap.so
+
+/etc/pam.d/system-auth:auth        sufficient    pam_ldap.so use_first_pass
+/etc/pam.d/system-auth:account     [default=bad success=ok user_unknown=ignore] pam_ldap.so
+/etc/pam.d/system-auth:password    sufficient    pam_ldap.so use_authtok
+/etc/pam.d/system-auth:session     optional      pam_ldap.so
+/etc/pam.d/system-auth-ac:auth        sufficient    pam_ldap.so use_first_pass
+/etc/pam.d/system-auth-ac:account     [default=bad success=ok user_unknown=ignore] pam_ldap.so
+/etc/pam.d/system-auth-ac:password    sufficient    pam_ldap.so use_authtok
+/etc/pam.d/system-auth-ac:session     optional      pam_ldap.so
+
+Настраиваем
+vi /etc/nslcd.conf
+изменил последние две строчки:
+
+# This comment prevents repeated auto-migration of settings.
+uri ldap://10.1.137.176/
+base dc=%DOMAIN%,dc=com
+
+chkconfig nslcd on
+/etc/init.d/nslcd start
+
+Проверяем, в двух консолях:
+
+getent passwd | egrep '10[0-9+].+bash$'
+test1:x:1001:0:test1:/home/test1:/bin/bash
+prok:x:1002:0:prok:/home/prok:/bin/bash
+a.arseniev:x:1003:0:a.arseniev:/home/a.arseniev:/bin/bash
+testuser:x:1004:0:testuser:/home/testuser:/bin/bash
+testadmin:x:1005:0:testadmin:/home/testadmin:/bin/bash
+demin2:x:1006:0:demin2:/home/demin2:/bin/bash
+demin3:x:1007:0:demin3:/home/demin3:/bin/bash
+
+
+tcpdump port 389  ( Это конечно лишнее, но малоль, firewall где-то, что-то, увидели откуда куда пришли пакетики)
+
+11:26:46.322902 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [P.], seq 141909029:141909194, ack 1903789316, win 32, options [nop,nop,TS val 82618498 ecr 85425787], length 165
+11:26:46.324999 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 1:349, ack 165, win 32, options [nop,nop,TS val 85478729 ecr 82618498], length 348
+11:26:46.325005 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 349, win 32, options [nop,nop,TS val 82618500 ecr 85478729], length 0
+11:26:46.326076 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 349:692, ack 165, win 32, options [nop,nop,TS val 85478730 ecr 82618500], length 343
+11:26:46.326081 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 692, win 32, options [nop,nop,TS val 82618501 ecr 85478730], length 0
+11:26:46.326969 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 692:1065, ack 165, win 32, options [nop,nop,TS val 85478731 ecr 82618501], length 373
+11:26:46.326988 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 1065, win 32, options [nop,nop,TS val 82618502 ecr 85478731], length 0
+11:26:46.328133 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 1065:1428, ack 165, win 32, options [nop,nop,TS val 85478732 ecr 82618502], length 363
+11:26:46.328138 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 1428, win 32, options [nop,nop,TS val 82618503 ecr 85478732], length 0
+11:26:46.329009 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 1428:1796, ack 165, win 32, options [nop,nop,TS val 85478733 ecr 82618503], length 368
+11:26:46.329013 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 1796, win 32, options [nop,nop,TS val 82618504 ecr 85478733], length 0
+11:26:46.330218 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 1796:2149, ack 165, win 32, options [nop,nop,TS val 85478734 ecr 82618504], length 353
+11:26:46.330222 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 2149, win 32, options [nop,nop,TS val 82618506 ecr 85478734], length 0
+11:26:46.331640 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 2149:2502, ack 165, win 32, options [nop,nop,TS val 85478735 ecr 82618506], length 353
+11:26:46.331644 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 2502, win 32, options [nop,nop,TS val 82618507 ecr 85478735], length 0
+11:26:46.331660 IP 10.1.137.176.ldap > 10.1.137.173.55648: Flags [P.], seq 2502:2516, ack 165, win 32, options [nop,nop,TS val 85478736 ecr 82618506], length 14
+11:26:46.331662 IP 10.1.137.173.55648 > 10.1.137.176.ldap: Flags [.], ack 2516, win 32, options [nop,nop,TS val 82618507 ecr 85478736], length 0
+
+Запросы отработали: 
